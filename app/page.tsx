@@ -12,7 +12,6 @@ import {
   FiMessageSquare,
   FiSettings,
   FiSliders,
-  FiX,
   FiZap,
 } from "react-icons/fi";
 import { SiTelegram, SiWhatsapp } from "react-icons/si";
@@ -239,7 +238,7 @@ export default function Home() {
             aria-expanded={sidebarOpen}
             onClick={() => setSidebarOpen((open) => !open)}
           >
-            {sidebarOpen ? <FiX /> : <FiMenu />}
+            {sidebarOpen ? <FiChevronLeft /> : <FiMenu />}
           </button>
 
           <button
