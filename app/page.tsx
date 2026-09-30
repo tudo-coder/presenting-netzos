@@ -231,15 +231,17 @@ export default function Home() {
         </header>
 
         <div className="dashboard-shell">
-          <button
-            className="sidebar-mobile-trigger"
-            type="button"
-            aria-label={sidebarOpen ? "Close navigation" : "Open navigation"}
-            aria-expanded={sidebarOpen}
-            onClick={() => setSidebarOpen((open) => !open)}
-          >
-            {sidebarOpen ? <FiChevronLeft /> : <FiMenu />}
-          </button>
+          {!sidebarOpen && (
+            <button
+              className="sidebar-mobile-trigger"
+              type="button"
+              aria-label="Open navigation"
+              aria-expanded={false}
+              onClick={() => setSidebarOpen(true)}
+            >
+              <FiMenu aria-hidden="true" />
+            </button>
+          )}
 
           <button
             className={`sidebar-backdrop ${sidebarOpen ? "visible" : ""}`}
@@ -260,7 +262,17 @@ export default function Home() {
           >
             <div className="sidebar-inner">
               <div className="sidebar-main">
-                <span className="sidebar-section-label">Workspace</span>
+                <div className="sidebar-topline">
+                  <span className="sidebar-section-label">Workspace</span>
+                  <button
+                    className="sidebar-mobile-close"
+                    type="button"
+                    aria-label="Close navigation"
+                    onClick={() => setSidebarOpen(false)}
+                  >
+                    <FiChevronLeft aria-hidden="true" />
+                  </button>
+                </div>
                 <nav className="sidebar-nav">
                   {primaryNavigation.map(renderNavItem)}
                 </nav>
