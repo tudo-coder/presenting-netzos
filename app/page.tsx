@@ -171,51 +171,6 @@ export default function Home() {
           </button>
         </header>
 
-        <section className="dashboard-main">
-          <div className="dashboard-toolbar">
-            <div>
-              <span className="dashboard-eyebrow">Command center</span>
-              <h1>Overview</h1>
-            </div>
-            <div className="dashboard-toolbar-actions">
-              <button className="dashboard-secondary-action" type="button">
-                Activity
-              </button>
-              <button className="dashboard-primary-action" type="button">
-                New agent
-              </button>
-            </div>
-          </div>
-
-          <div className="dashboard-layout">
-            <div className="dashboard-primary-column">
-              <section className="overview-panel">
-                <div className="overview-panel-head">
-                  <div>
-                    <span className="panel-label">Live operations</span>
-                    <h2>Everything is running smoothly.</h2>
-                  </div>
-                  <span className="live-badge">
-                    <span className="live-dot" />
-                    Live
-                  </span>
-                </div>
-
-                <div className="overview-metrics">
-                  <div className="metric">
-                    <strong>4</strong>
-                    <span>Active agents</span>
-                  </div>
-                  <div className="metric">
-                    <strong>18</strong>
-                    <span>Tasks today</span>
-                  </div>
-                  <div className="metric">
-                    <strong>96%</strong>
-                    <span>Handled automatically</span>
-                  </div>
-                </div>
-              </section>
 
               <section className="activity-panel">
                 <div className="section-heading">
