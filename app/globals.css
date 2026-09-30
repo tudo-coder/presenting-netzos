@@ -32,10 +32,20 @@ button {
 }
 
 .hero {
+  width: min(760px, calc(100vw - 48px));
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 28px;
+  padding: 54px 72px 50px;
+  border: 1px solid rgba(17, 17, 17, 0.07);
+  border-radius: 28px;
+  background: rgba(232, 232, 228, 0.68);
+  box-shadow:
+    0 24px 70px rgba(17, 17, 17, 0.07),
+    inset 0 1px 0 rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
   text-align: center;
 }
 
@@ -75,4 +85,12 @@ button {
 .login:focus-visible {
   outline: 3px solid #111111;
   outline-offset: 4px;
+}
+
+@media (max-width: 640px) {
+  .hero {
+    width: calc(100vw - 32px);
+    padding: 42px 24px 40px;
+    border-radius: 22px;
+  }
 }
