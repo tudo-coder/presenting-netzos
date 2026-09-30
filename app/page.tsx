@@ -172,11 +172,6 @@ export default function Home() {
         </header>
 
         <section className="dashboard-main">
-          <div className="dashboard-intro">
-            <h1 className="dashboard-title">NetzOS</h1>
-            <p>Your workspace is ready.</p>
-          </div>
-
           <div className="dashboard-grid">
             <article className="dashboard-card">
               <span>Agents</span>
