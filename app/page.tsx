@@ -172,24 +172,164 @@ export default function Home() {
         </header>
 
         <section className="dashboard-main">
-          <div className="dashboard-grid">
-            <article className="dashboard-card">
-              <span>Agents</span>
-              <strong>4 active</strong>
-              <p>Sales, Support, Inbox and Ops are online.</p>
-            </article>
+          <div className="dashboard-toolbar">
+            <div>
+              <span className="dashboard-eyebrow">Command center</span>
+              <h1>Overview</h1>
+            </div>
+            <div className="dashboard-toolbar-actions">
+              <button className="dashboard-secondary-action" type="button">
+                Activity
+              </button>
+              <button className="dashboard-primary-action" type="button">
+                New agent
+              </button>
+            </div>
+          </div>
 
-            <article className="dashboard-card">
-              <span>Channels</span>
-              <strong>4 connected</strong>
-              <p>WhatsApp, Telegram, Gmail and Slack.</p>
-            </article>
+          <div className="dashboard-layout">
+            <div className="dashboard-primary-column">
+              <section className="overview-panel">
+                <div className="overview-panel-head">
+                  <div>
+                    <span className="panel-label">Live operations</span>
+                    <h2>Everything is running smoothly.</h2>
+                  </div>
+                  <span className="live-badge">
+                    <span className="live-dot" />
+                    Live
+                  </span>
+                </div>
 
-            <article className="dashboard-card">
-              <span>Activity</span>
-              <strong>Live</strong>
-              <p>Messages and automations are flowing normally.</p>
-            </article>
+                <div className="overview-metrics">
+                  <div className="metric">
+                    <strong>4</strong>
+                    <span>Active agents</span>
+                  </div>
+                  <div className="metric">
+                    <strong>18</strong>
+                    <span>Tasks today</span>
+                  </div>
+                  <div className="metric">
+                    <strong>96%</strong>
+                    <span>Handled automatically</span>
+                  </div>
+                </div>
+              </section>
+
+              <section className="activity-panel">
+                <div className="section-heading">
+                  <div>
+                    <span className="panel-label">Recent activity</span>
+                    <h2>Agent timeline</h2>
+                  </div>
+                  <button className="text-action" type="button">
+                    View all
+                  </button>
+                </div>
+
+                <div className="activity-list">
+                  <div className="activity-row">
+                    <span className="activity-icon">
+                      <ChannelIcon channel="WhatsApp" />
+                    </span>
+                    <div className="activity-copy">
+                      <strong>Sales Agent</strong>
+                      <p>Qualified a new lead and queued the next follow-up.</p>
+                    </div>
+                    <time>2m</time>
+                  </div>
+
+                  <div className="activity-row">
+                    <span className="activity-icon">
+                      <ChannelIcon channel="Gmail" />
+                    </span>
+                    <div className="activity-copy">
+                      <strong>Inbox Agent</strong>
+                      <p>Sorted incoming conversations and flagged two for review.</p>
+                    </div>
+                    <time>8m</time>
+                  </div>
+
+                  <div className="activity-row">
+                    <span className="activity-icon">
+                      <ChannelIcon channel="Slack" />
+                    </span>
+                    <div className="activity-copy">
+                      <strong>Ops Agent</strong>
+                      <p>Shared the latest operations brief with the team.</p>
+                    </div>
+                    <time>14m</time>
+                  </div>
+                </div>
+              </section>
+            </div>
+
+            <aside className="dashboard-side-column">
+              <section className="agents-panel">
+                <div className="section-heading compact">
+                  <div>
+                    <span className="panel-label">Agents</span>
+                    <h2>Currently active</h2>
+                  </div>
+                </div>
+
+                <div className="active-agent-list">
+                  <div className="active-agent">
+                    <span className="agent-orb">
+                      <ChannelIcon channel="WhatsApp" />
+                    </span>
+                    <div>
+                      <strong>Sales Agent</strong>
+                      <span>Working now</span>
+                    </div>
+                    <span className="agent-online-dot" />
+                  </div>
+
+                  <div className="active-agent">
+                    <span className="agent-orb">
+                      <ChannelIcon channel="Gmail" />
+                    </span>
+                    <div>
+                      <strong>Inbox Agent</strong>
+                      <span>Monitoring</span>
+                    </div>
+                    <span className="agent-online-dot" />
+                  </div>
+
+                  <div className="active-agent">
+                    <span className="agent-orb">
+                      <ChannelIcon channel="Telegram" />
+                    </span>
+                    <div>
+                      <strong>Alert Agent</strong>
+                      <span>Listening</span>
+                    </div>
+                    <span className="agent-online-dot" />
+                  </div>
+
+                  <div className="active-agent">
+                    <span className="agent-orb">
+                      <ChannelIcon channel="Slack" />
+                    </span>
+                    <div>
+                      <strong>Ops Agent</strong>
+                      <span>Ready</span>
+                    </div>
+                    <span className="agent-online-dot" />
+                  </div>
+                </div>
+              </section>
+
+              <section className="quick-panel">
+                <span className="panel-label">Quick actions</span>
+                <div className="quick-actions">
+                  <button type="button">Create agent</button>
+                  <button type="button">Connect channel</button>
+                  <button type="button">Open activity</button>
+                </div>
+              </section>
+            </aside>
           </div>
         </section>
       </main>
@@ -209,34 +349,14 @@ export default function Home() {
       </div>
 
       <section className="hero" aria-label="NetzOS">
-        <div className="hero-content">
-          <div className="hero-kicker">
-            <span className="hero-kicker-dot" />
-            Multi-channel agent OS
-          </div>
-
-          <h1 className="wordmark">NetzOS</h1>
-          <p className="hero-copy">AI agents working across every conversation.</p>
-
-          <button
-            className="login"
-            type="button"
-            onClick={() => setLoggedIn(true)}
-          >
-            Login
-          </button>
-
-          <div className="hero-channels" aria-label="Connected channels">
-            {["WhatsApp", "Telegram", "Gmail", "Slack"].map((channel) => (
-              <div className="hero-channel" key={channel}>
-                <span className="hero-channel-icon" aria-hidden="true">
-                  <ChannelIcon channel={channel} />
-                </span>
-                <span>{channel}</span>
-              </div>
-            ))}
-          </div>
-        </div>
+        <h1 className="wordmark">NetzOS</h1>
+        <button
+          className="login"
+          type="button"
+          onClick={() => setLoggedIn(true)}
+        >
+          Login
+        </button>
       </section>
     </main>
   );
