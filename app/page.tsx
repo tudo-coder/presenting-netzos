@@ -100,11 +100,15 @@ function MarqueeColumn({
   return (
     <div className="marquee-column">
       <div className={`marquee-track ${reverse ? "reverse" : ""}`}>
-        {[...ordered, ...ordered].map((review, index) => (
-          <TestimonialCard
-            key={`${review.username}-${index}`}
-            review={review}
-          />
+        {[0, 1, 2].map((copy) => (
+          <div className="marquee-group" key={copy}>
+            {ordered.map((review) => (
+              <TestimonialCard
+                key={`${copy}-${review.username}`}
+                review={review}
+              />
+            ))}
+          </div>
         ))}
       </div>
     </div>
