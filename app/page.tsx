@@ -1,6 +1,20 @@
 "use client";
 
 import { useState } from "react";
+import {
+  FiActivity,
+  FiChevronLeft,
+  FiCpu,
+  FiGrid,
+  FiHelpCircle,
+  FiHome,
+  FiMenu,
+  FiMessageSquare,
+  FiSettings,
+  FiSliders,
+  FiX,
+  FiZap,
+} from "react-icons/fi";
 import { SiTelegram, SiWhatsapp } from "react-icons/si";
 
 const agentActivity = [
@@ -154,10 +168,56 @@ function MarqueeColumn({
   );
 }
 
+const primaryNavigation = [
+  { label: "Home", Icon: FiHome },
+  { label: "Agents", Icon: FiCpu },
+  { label: "Channels", Icon: FiGrid },
+  { label: "Conversations", Icon: FiMessageSquare },
+  { label: "Automations", Icon: FiZap },
+  { label: "Activity", Icon: FiActivity },
+  { label: "Integrations", Icon: FiSliders },
+];
+
+const secondaryNavigation = [
+  { label: "Settings", Icon: FiSettings },
+  { label: "Help", Icon: FiHelpCircle },
+];
+
 export default function Home() {
   const [loggedIn, setLoggedIn] = useState(false);
+  const [activeNav, setActiveNav] = useState("Home");
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   if (loggedIn) {
+    const renderNavItem = ({
+      label,
+      Icon,
+    }: {
+      label: string;
+      Icon: typeof FiHome;
+    }) => {
+      const active = activeNav === label;
+
+      return (
+        <button
+          className={`sidebar-item ${active ? "active" : ""}`}
+          type="button"
+          key={label}
+          aria-current={active ? "page" : undefined}
+          aria-label={sidebarCollapsed ? label : undefined}
+          title={sidebarCollapsed ? label : undefined}
+          onClick={() => {
+            setActiveNav(label);
+            setSidebarOpen(false);
+          }}
+        >
+          <Icon aria-hidden="true" />
+          <span>{label}</span>
+        </button>
+      );
+    };
+
     return (
       <main className="dashboard">
         <header className="dashboard-header">
@@ -170,6 +230,65 @@ export default function Home() {
             Logout
           </button>
         </header>
+
+        <div className="dashboard-shell">
+          <button
+            className="sidebar-mobile-trigger"
+            type="button"
+            aria-label={sidebarOpen ? "Close navigation" : "Open navigation"}
+            aria-expanded={sidebarOpen}
+            onClick={() => setSidebarOpen((open) => !open)}
+          >
+            {sidebarOpen ? <FiX /> : <FiMenu />}
+          </button>
+
+          <button
+            className={`sidebar-backdrop ${sidebarOpen ? "visible" : ""}`}
+            type="button"
+            aria-label="Close navigation"
+            onClick={() => setSidebarOpen(false)}
+          />
+
+          <aside
+            className={[
+              "dashboard-sidebar",
+              sidebarCollapsed ? "collapsed" : "",
+              sidebarOpen ? "mobile-open" : "",
+            ]
+              .filter(Boolean)
+              .join(" ")}
+            aria-label="Primary navigation"
+          >
+            <div className="sidebar-inner">
+              <div className="sidebar-main">
+                <span className="sidebar-section-label">Workspace</span>
+                <nav className="sidebar-nav">
+                  {primaryNavigation.map(renderNavItem)}
+                </nav>
+              </div>
+
+              <div className="sidebar-bottom">
+                <span className="sidebar-section-label">System</span>
+                <nav className="sidebar-nav">
+                  {secondaryNavigation.map(renderNavItem)}
+                </nav>
+
+                <button
+                  className="sidebar-collapse"
+                  type="button"
+                  aria-label={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+                  aria-pressed={sidebarCollapsed}
+                  onClick={() => setSidebarCollapsed((collapsed) => !collapsed)}
+                >
+                  <FiChevronLeft aria-hidden="true" />
+                  <span>Collapse</span>
+                </button>
+              </div>
+            </div>
+          </aside>
+
+          <div className="dashboard-content" />
+        </div>
       </main>
     );
   }
