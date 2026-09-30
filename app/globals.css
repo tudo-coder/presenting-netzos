@@ -35,7 +35,7 @@ button {
   background: #f8f8f6;
 }
 
-.testimonial-background {
+.agent-background {
   position: absolute;
   inset: -18vh -10vw;
   z-index: 0;
@@ -44,7 +44,7 @@ button {
   pointer-events: none;
 }
 
-.testimonial-plane {
+.agent-plane {
   position: absolute;
   inset: -24% -8%;
   display: grid;
@@ -90,7 +90,7 @@ button {
   animation-duration: 44s;
 }
 
-.testimonial-card {
+.agent-card {
   flex: none;
   height: 126px;
   padding: 16px;
@@ -105,43 +105,68 @@ button {
   transform: translateZ(0);
 }
 
-.testimonial-author {
+.agent-card-top {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 10px;
 }
 
-.avatar {
-  width: 36px;
-  height: 36px;
-  border-radius: 999px;
-  object-fit: cover;
-  background: #ecece8;
+.channel-badge,
+.agent-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  white-space: nowrap;
 }
 
-.author-name {
+.channel-badge {
+  color: #363632;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.channel-mark {
+  display: grid;
+  width: 26px;
+  height: 26px;
+  place-items: center;
+  border-radius: 8px;
+  background: rgba(17, 17, 17, 0.07);
+  color: #20201d;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.agent-status {
+  color: #85857e;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.status-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 999px;
+  background: #686862;
+}
+
+.agent-name {
+  margin-top: 13px;
+  color: #242421;
   font-size: 13px;
-  font-weight: 650;
+  font-weight: 700;
   line-height: 1.2;
 }
 
-.author-name span {
-  margin-left: 2px;
+.agent-card p {
+  margin: 8px 0 0;
+  color: #666660;
   font-size: 11px;
-}
-
-.username {
-  margin-top: 2px;
-  color: #96968e;
-  font-size: 11px;
-  font-weight: 550;
-}
-
-.testimonial-card p {
-  margin: 13px 0 0;
-  color: #5f5f59;
-  font-size: 12px;
-  line-height: 1.45;
+  line-height: 1.4;
 }
 
 .background-wash {
@@ -235,7 +260,7 @@ button {
     padding: 20px;
   }
 
-  .testimonial-plane {
+  .agent-plane {
     inset: -20% -35%;
     grid-template-columns: repeat(3, minmax(165px, 1fr));
     gap: 12px;
@@ -248,11 +273,11 @@ button {
       scale(1.07);
   }
 
-  .testimonial-plane > :last-child {
+  .agent-plane > :last-child {
     display: none;
   }
 
-  .testimonial-card {
+  .agent-card {
     height: 112px;
     padding: 14px;
   }
