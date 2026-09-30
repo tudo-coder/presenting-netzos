@@ -1,3 +1,6 @@
+"use client";
+
+import { useState } from "react";
 import { SiTelegram, SiWhatsapp } from "react-icons/si";
 
 const agentActivity = [
@@ -152,6 +155,52 @@ function MarqueeColumn({
 }
 
 export default function Home() {
+  const [loggedIn, setLoggedIn] = useState(false);
+
+  if (loggedIn) {
+    return (
+      <main className="dashboard">
+        <header className="dashboard-header">
+          <div className="dashboard-wordmark">NetzOS</div>
+          <button
+            className="dashboard-logout"
+            type="button"
+            onClick={() => setLoggedIn(false)}
+          >
+            Logout
+          </button>
+        </header>
+
+        <section className="dashboard-main">
+          <div className="dashboard-intro">
+            <h1 className="dashboard-title">NetzOS</h1>
+            <p>Your workspace is ready.</p>
+          </div>
+
+          <div className="dashboard-grid">
+            <article className="dashboard-card">
+              <span>Agents</span>
+              <strong>4 active</strong>
+              <p>Sales, Support, Inbox and Ops are online.</p>
+            </article>
+
+            <article className="dashboard-card">
+              <span>Channels</span>
+              <strong>4 connected</strong>
+              <p>WhatsApp, Telegram, Gmail and Slack.</p>
+            </article>
+
+            <article className="dashboard-card">
+              <span>Activity</span>
+              <strong>Live</strong>
+              <p>Messages and automations are flowing normally.</p>
+            </article>
+          </div>
+        </section>
+      </main>
+    );
+  }
+
   return (
     <main className="home">
       <div className="agent-background" aria-hidden="true">
@@ -166,7 +215,11 @@ export default function Home() {
 
       <section className="hero" aria-label="NetzOS">
         <h1 className="wordmark">NetzOS</h1>
-        <button className="login" type="button">
+        <button
+          className="login"
+          type="button"
+          onClick={() => setLoggedIn(true)}
+        >
           Login
         </button>
       </section>
