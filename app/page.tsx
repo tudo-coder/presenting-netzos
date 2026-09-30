@@ -209,14 +209,34 @@ export default function Home() {
       </div>
 
       <section className="hero" aria-label="NetzOS">
-        <h1 className="wordmark">NetzOS</h1>
-        <button
-          className="login"
-          type="button"
-          onClick={() => setLoggedIn(true)}
-        >
-          Login
-        </button>
+        <div className="hero-content">
+          <div className="hero-kicker">
+            <span className="hero-kicker-dot" />
+            Multi-channel agent OS
+          </div>
+
+          <h1 className="wordmark">NetzOS</h1>
+          <p className="hero-copy">AI agents working across every conversation.</p>
+
+          <button
+            className="login"
+            type="button"
+            onClick={() => setLoggedIn(true)}
+          >
+            Login
+          </button>
+
+          <div className="hero-channels" aria-label="Connected channels">
+            {["WhatsApp", "Telegram", "Gmail", "Slack"].map((channel) => (
+              <div className="hero-channel" key={channel}>
+                <span className="hero-channel-icon" aria-hidden="true">
+                  <ChannelIcon channel={channel} />
+                </span>
+                <span>{channel}</span>
+              </div>
+            ))}
+          </div>
+        </div>
       </section>
     </main>
   );

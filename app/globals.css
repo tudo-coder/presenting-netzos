@@ -30,33 +30,32 @@ button {
   display: grid;
   place-items: center;
   overflow: hidden;
-  padding: 24px;
   isolation: isolate;
-  background: #f8f8f6;
+  background: #f7f7f4;
 }
 
 .agent-background {
   position: absolute;
-  inset: -18vh -10vw;
+  inset: -22vh -12vw;
   z-index: 0;
   overflow: hidden;
-  perspective: 650px;
+  perspective: 760px;
   pointer-events: none;
 }
 
 .agent-plane {
   position: absolute;
-  inset: -24% -8%;
+  inset: -22% -7%;
   display: grid;
-  grid-template-columns: repeat(4, minmax(190px, 1fr));
+  grid-template-columns: repeat(4, minmax(210px, 1fr));
   gap: 18px;
   opacity: 0.72;
   transform:
-    translate3d(-2%, 0, -110px)
-    rotateX(13deg)
+    translate3d(-2%, 0, -105px)
+    rotateX(10deg)
     rotateY(-7deg)
-    rotateZ(8deg)
-    scale(1.08);
+    rotateZ(6deg)
+    scale(1.055);
   transform-origin: center;
 }
 
@@ -78,6 +77,18 @@ button {
   backface-visibility: hidden;
 }
 
+.marquee-column:nth-child(2) .marquee-track {
+  animation-duration: 46s;
+}
+
+.marquee-column:nth-child(3) .marquee-track {
+  animation-duration: 41s;
+}
+
+.marquee-column:nth-child(4) .marquee-track {
+  animation-duration: 49s;
+}
+
 .marquee-group {
   display: flex;
   flex: none;
@@ -87,22 +98,36 @@ button {
 
 .marquee-track.reverse {
   animation-name: marquee-vertical-reverse;
-  animation-duration: 44s;
 }
 
 .agent-card {
+  position: relative;
   flex: none;
   height: 126px;
-  padding: 16px;
-  border: 1px solid rgba(24, 24, 22, 0.09);
-  border-radius: 17px;
-  background: rgba(255, 255, 255, 0.86);
+  padding: 15px 16px;
+  overflow: hidden;
+  border: 1px solid rgba(24, 24, 22, 0.075);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.9);
   box-shadow:
-    0 10px 35px rgba(35, 35, 30, 0.045),
-    inset 0 1px 0 rgba(255, 255, 255, 0.92);
-  color: #262624;
+    0 18px 42px rgba(35, 35, 30, 0.045),
+    inset 0 1px 0 rgba(255, 255, 255, 0.96);
+  color: #242421;
   backface-visibility: hidden;
   transform: translateZ(0);
+}
+
+.agent-card::after {
+  content: "";
+  position: absolute;
+  inset: auto 14px 0;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(17, 17, 17, 0.08),
+    transparent
+  );
 }
 
 .agent-card-top {
@@ -121,9 +146,10 @@ button {
 }
 
 .channel-badge {
-  color: #363632;
+  color: #30302d;
   font-size: 11px;
   font-weight: 700;
+  letter-spacing: -0.01em;
 }
 
 .channel-mark {
@@ -131,9 +157,10 @@ button {
   width: 30px;
   height: 30px;
   place-items: center;
+  border: 1px solid rgba(17, 17, 17, 0.055);
   border-radius: 9px;
-  background: rgba(255, 255, 255, 0.82);
-  box-shadow: inset 0 0 0 1px rgba(17, 17, 17, 0.045);
+  background: #ffffff;
+  box-shadow: 0 3px 10px rgba(17, 17, 17, 0.035);
 }
 
 .brand-icon {
@@ -152,9 +179,9 @@ button {
 
 .agent-status {
   color: #85857e;
-  font-size: 9px;
-  font-weight: 700;
-  letter-spacing: 0.02em;
+  font-size: 8px;
+  font-weight: 750;
+  letter-spacing: 0.055em;
   text-transform: uppercase;
 }
 
@@ -162,88 +189,158 @@ button {
   width: 5px;
   height: 5px;
   border-radius: 999px;
-  background: #686862;
+  background: #5f5f59;
+  box-shadow: 0 0 0 3px rgba(95, 95, 89, 0.08);
 }
 
 .agent-name {
-  margin-top: 13px;
-  color: #242421;
+  margin-top: 12px;
+  color: #20201d;
   font-size: 13px;
-  font-weight: 700;
-  line-height: 1.2;
+  font-weight: 750;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
 }
 
 .agent-card p {
-  margin: 8px 0 0;
-  color: #666660;
+  margin: 7px 0 0;
+  max-width: 95%;
+  color: #6c6c65;
   font-size: 11px;
-  line-height: 1.4;
+  line-height: 1.42;
 }
 
 .background-wash {
   position: absolute;
   inset: 0;
   background:
-    linear-gradient(to bottom, #f8f8f6 0%, transparent 18%, transparent 82%, #f8f8f6 100%),
-    linear-gradient(to right, #f8f8f6 0%, transparent 14%, transparent 86%, #f8f8f6 100%);
+    linear-gradient(to bottom, #f7f7f4 0%, transparent 14%, transparent 86%, #f7f7f4 100%),
+    linear-gradient(to right, #f7f7f4 0%, transparent 10%, transparent 90%, #f7f7f4 100%);
 }
 
 .hero {
   position: absolute;
   inset: 0;
   z-index: 1;
-  width: 100%;
-  min-height: 100%;
+  display: grid;
+  place-items: center;
+  padding: 28px;
+  background: rgba(235, 235, 231, 0.48);
+  text-align: center;
+}
+
+.hero-content {
+  width: min(760px, 100%);
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 28px;
-  padding: 24px;
-  border: 0;
-  border-radius: 0;
-  background: rgba(232, 232, 228, 0.48);
-  box-shadow: none;
-  text-align: center;
+}
+
+.hero-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 24px;
+  color: rgba(17, 17, 17, 0.58);
+  font-size: 10px;
+  font-weight: 750;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+
+.hero-kicker-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: #111111;
+  box-shadow: 0 0 0 4px rgba(17, 17, 17, 0.07);
 }
 
 .wordmark {
   margin: 0;
-  font-size: clamp(4rem, 12vw, 8rem);
+  color: #101010;
+  font-size: clamp(5.2rem, 14vw, 10rem);
   font-weight: 700;
-  letter-spacing: -0.07em;
-  line-height: 0.9;
-  color: #111111;
-  transform: scaleY(0.85);
+  letter-spacing: -0.075em;
+  line-height: 0.78;
+  transform: scaleY(0.84);
   transform-origin: center;
-  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.9);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.82);
+}
+
+.hero-copy {
+  margin: 17px 0 0;
+  color: rgba(17, 17, 17, 0.6);
+  font-size: clamp(0.82rem, 1.4vw, 0.96rem);
+  font-weight: 500;
+  letter-spacing: -0.015em;
 }
 
 .login {
-  min-width: 112px;
+  min-width: 116px;
+  margin-top: 30px;
   border: 1px solid #111111;
   border-radius: 999px;
   background: #111111;
   color: #ffffff;
-  padding: 11px 22px;
+  padding: 11px 24px;
   cursor: pointer;
-  box-shadow: 0 10px 28px rgba(17, 17, 17, 0.12);
+  box-shadow: 0 12px 30px rgba(17, 17, 17, 0.12);
   transition:
     transform 160ms ease,
+    box-shadow 160ms ease,
     opacity 160ms ease;
 }
 
 .login:hover {
-  opacity: 0.86;
+  transform: translateY(-1px);
+  box-shadow: 0 16px 34px rgba(17, 17, 17, 0.16);
 }
 
 .login:active {
-  transform: scale(0.98);
+  transform: translateY(0) scale(0.985);
 }
 
 .login:focus-visible {
-  outline: 3px solid #111111;
+  outline: 3px solid rgba(17, 17, 17, 0.22);
   outline-offset: 4px;
+}
+
+.hero-channels {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 28px;
+  flex-wrap: wrap;
+}
+
+.hero-channel {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 10px 6px 7px;
+  border: 1px solid rgba(17, 17, 17, 0.065);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.44);
+  color: rgba(17, 17, 17, 0.58);
+  font-size: 10px;
+  font-weight: 650;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.62);
+}
+
+.hero-channel-icon {
+  display: grid;
+  width: 21px;
+  height: 21px;
+  place-items: center;
+  border-radius: 7px;
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.hero-channel-icon .brand-icon {
+  width: 13px;
+  height: 13px;
 }
 
 @keyframes marquee-vertical {
@@ -271,17 +368,45 @@ button {
     padding: 20px;
   }
 
+  .hero-kicker {
+    margin-bottom: 18px;
+    font-size: 9px;
+  }
+
+  .wordmark {
+    font-size: clamp(4.6rem, 25vw, 7.2rem);
+  }
+
+  .hero-copy {
+    margin-top: 12px;
+  }
+
+  .login {
+    margin-top: 25px;
+  }
+
+  .hero-channels {
+    max-width: 330px;
+    margin-top: 23px;
+    gap: 6px;
+  }
+
+  .hero-channel {
+    padding-right: 8px;
+    font-size: 9px;
+  }
+
   .agent-plane {
-    inset: -20% -35%;
-    grid-template-columns: repeat(3, minmax(165px, 1fr));
+    inset: -20% -42%;
+    grid-template-columns: repeat(3, minmax(170px, 1fr));
     gap: 12px;
-    opacity: 0.58;
+    opacity: 0.6;
     transform:
       translate3d(-4%, 0, -100px)
-      rotateX(11deg)
+      rotateX(9deg)
       rotateY(-5deg)
-      rotateZ(7deg)
-      scale(1.07);
+      rotateZ(6deg)
+      scale(1.06);
   }
 
   .agent-plane > :last-child {
@@ -290,7 +415,21 @@ button {
 
   .agent-card {
     height: 112px;
-    padding: 14px;
+    padding: 13px 14px;
+  }
+
+  .agent-name {
+    margin-top: 9px;
+  }
+
+  .agent-card p {
+    margin-top: 5px;
+    font-size: 10px;
+  }
+
+  .marquee-track,
+  .marquee-group {
+    gap: 16px;
   }
 
   @keyframes marquee-vertical {
