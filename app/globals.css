@@ -16,6 +16,7 @@ body {
 
 body {
   min-height: 100vh;
+  overflow: hidden;
   background: #f8f8f6;
 }
 
@@ -24,14 +25,135 @@ button {
 }
 
 .home {
+  position: relative;
   min-height: 100vh;
   display: grid;
   place-items: center;
+  overflow: hidden;
   padding: 24px;
+  isolation: isolate;
   background: #f8f8f6;
 }
 
+.testimonial-background {
+  position: absolute;
+  inset: -18vh -10vw;
+  z-index: -2;
+  overflow: hidden;
+  perspective: 650px;
+  pointer-events: none;
+}
+
+.testimonial-plane {
+  position: absolute;
+  inset: -24% -8%;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(190px, 1fr));
+  gap: 18px;
+  opacity: 0.72;
+  transform:
+    translate3d(-2%, 0, -110px)
+    rotateX(13deg)
+    rotateY(-7deg)
+    rotateZ(8deg)
+    scale(1.08);
+  transform-origin: center;
+}
+
+.marquee-column {
+  height: 100%;
+  overflow: hidden;
+  padding: 8px;
+  contain: paint;
+}
+
+.marquee-track {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  animation: marquee-vertical 38s linear infinite;
+  will-change: transform;
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+}
+
+.marquee-group {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.marquee-track.reverse {
+  animation-name: marquee-vertical-reverse;
+  animation-duration: 44s;
+}
+
+.testimonial-card {
+  flex: none;
+  height: 126px;
+  padding: 16px;
+  border: 1px solid rgba(24, 24, 22, 0.09);
+  border-radius: 17px;
+  background: rgba(255, 255, 255, 0.86);
+  box-shadow:
+    0 10px 35px rgba(35, 35, 30, 0.045),
+    inset 0 1px 0 rgba(255, 255, 255, 0.92);
+  color: #262624;
+  backface-visibility: hidden;
+  transform: translateZ(0);
+}
+
+.testimonial-author {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  object-fit: cover;
+  background: #ecece8;
+}
+
+.author-name {
+  font-size: 13px;
+  font-weight: 650;
+  line-height: 1.2;
+}
+
+.author-name span {
+  margin-left: 2px;
+  font-size: 11px;
+}
+
+.username {
+  margin-top: 2px;
+  color: #96968e;
+  font-size: 11px;
+  font-weight: 550;
+}
+
+.testimonial-card p {
+  margin: 13px 0 0;
+  color: #5f5f59;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.background-wash {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(to bottom, #f8f8f6 0%, transparent 18%, transparent 82%, #f8f8f6 100%),
+    linear-gradient(to right, #f8f8f6 0%, transparent 14%, transparent 86%, #f8f8f6 100%);
+}
+
 .hero {
+  position: relative;
+  z-index: 2;
   width: min(760px, calc(100vw - 48px));
   display: flex;
   flex-direction: column;
@@ -40,12 +162,10 @@ button {
   padding: 54px 72px 50px;
   border: 1px solid rgba(17, 17, 17, 0.07);
   border-radius: 28px;
-  background: rgba(232, 232, 228, 0.68);
+  background: rgba(232, 232, 228, 0.72);
   box-shadow:
     0 24px 70px rgba(17, 17, 17, 0.07),
     inset 0 1px 0 rgba(255, 255, 255, 0.72);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
   text-align: center;
 }
 
@@ -58,6 +178,7 @@ button {
   color: #111111;
   transform: scaleY(0.85);
   transform-origin: center;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.9);
 }
 
 .login {
@@ -87,10 +208,78 @@ button {
   outline-offset: 4px;
 }
 
-@media (max-width: 640px) {
+@keyframes marquee-vertical {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+
+  to {
+    transform: translate3d(0, -1278px, 0);
+  }
+}
+
+@keyframes marquee-vertical-reverse {
+  from {
+    transform: translate3d(0, -1278px, 0);
+  }
+
+  to {
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@media (max-width: 760px) {
   .hero {
     width: calc(100vw - 32px);
     padding: 42px 24px 40px;
     border-radius: 22px;
+  }
+
+  .testimonial-plane {
+    inset: -20% -35%;
+    grid-template-columns: repeat(3, minmax(165px, 1fr));
+    gap: 12px;
+    opacity: 0.58;
+    transform:
+      translate3d(-4%, 0, -100px)
+      rotateX(11deg)
+      rotateY(-5deg)
+      rotateZ(7deg)
+      scale(1.07);
+  }
+
+  .testimonial-plane > :last-child {
+    display: none;
+  }
+
+  .testimonial-card {
+    height: 112px;
+    padding: 14px;
+  }
+
+  @keyframes marquee-vertical {
+    from {
+      transform: translate3d(0, 0, 0);
+    }
+
+    to {
+      transform: translate3d(0, -1152px, 0);
+    }
+  }
+
+  @keyframes marquee-vertical-reverse {
+    from {
+      transform: translate3d(0, -1152px, 0);
+    }
+
+    to {
+      transform: translate3d(0, 0, 0);
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .marquee-track {
+    animation-play-state: paused;
   }
 }
