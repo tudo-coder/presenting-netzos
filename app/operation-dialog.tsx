@@ -13,6 +13,7 @@ import {
 } from "./operations-data";
 
 export function OperationDialog({
+  variant = "default",
   kind,
   operation,
   organizations,
@@ -21,6 +22,7 @@ export function OperationDialog({
   onClose,
   onSave,
 }: {
+  variant?: "default" | "agenda";
   kind: OperationKind;
   operation?: Operation | null;
   organizations: OrganizationRef[];
@@ -54,7 +56,7 @@ export function OperationDialog({
   return (
     <div className="ops-modal-backdrop" onMouseDown={onClose}>
       <section
-        className="ops-modal"
+        className={`ops-modal ${variant === "agenda" ? "agenda-ops-modal" : ""}`}
         role="dialog"
         aria-modal="true"
         aria-label={operation ? "Editar " + titleLabel : "Nova " + titleLabel}
