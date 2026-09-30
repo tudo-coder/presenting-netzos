@@ -11,12 +11,16 @@ import {
   FiMenu,
   FiMessageSquare,
   FiBriefcase,
+  FiCalendar,
+  FiCheckSquare,
   FiSettings,
   FiSliders,
   FiZap,
 } from "react-icons/fi";
 import { SiTelegram, SiWhatsapp } from "react-icons/si";
 import { OrganizationsFeature } from "./organizations";
+import { MyTasksFeature } from "./my-tasks";
+import { MyAgendaFeature } from "./my-agenda";
 
 const agentActivity = [
   {
@@ -171,6 +175,8 @@ function MarqueeColumn({
 
 const primaryNavigation = [
   { label: "Home", Icon: FiHome },
+  { label: "Minhas tarefas", Icon: FiCheckSquare },
+  { label: "Minha Agenda", Icon: FiCalendar },
   { label: "Organizações", Icon: FiBriefcase },
   { label: "Agents", Icon: FiCpu },
   { label: "Channels", Icon: FiGrid },
@@ -302,6 +308,12 @@ export default function Home() {
           </aside>
 
           <div className="dashboard-content">
+            {activeNav === "Minhas tarefas" && (
+              <MyTasksFeature onOpenOrganizations={() => setActiveNav("Organizações")} />
+            )}
+            {activeNav === "Minha Agenda" && (
+              <MyAgendaFeature onOpenOrganizations={() => setActiveNav("Organizações")} />
+            )}
             {activeNav === "Organizações" && <OrganizationsFeature />}
           </div>
         </div>
