@@ -1,6 +1,6 @@
+import { FaSlack } from "react-icons/fa";
 import {
   SiGmail,
-  SiSlack,
   SiTelegram,
   SiWhatsapp,
 } from "react-icons/si";
@@ -29,7 +29,7 @@ const agentActivity = [
   },
   {
     channel: "Slack",
-    Icon: SiSlack,
+    Icon: FaSlack,
     agent: "Ops Agent",
     body: "Daily brief posted to #operations.",
     status: "sent",
@@ -57,7 +57,7 @@ const agentActivity = [
   },
   {
     channel: "Slack",
-    Icon: SiSlack,
+    Icon: FaSlack,
     agent: "Internal Agent",
     body: "Incident summary shared with the team.",
     status: "posted",
