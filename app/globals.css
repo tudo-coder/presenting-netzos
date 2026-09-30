@@ -128,15 +128,17 @@ button {
 
 .channel-mark {
   display: grid;
-  width: 26px;
-  height: 26px;
+  width: 28px;
+  height: 28px;
   place-items: center;
-  border-radius: 8px;
+  border-radius: 9px;
   background: rgba(17, 17, 17, 0.07);
   color: #20201d;
-  font-size: 9px;
-  font-weight: 800;
-  letter-spacing: -0.02em;
+}
+
+.channel-mark svg {
+  width: 16px;
+  height: 16px;
 }
 
 .agent-status {

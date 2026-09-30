@@ -1,63 +1,70 @@
+import {
+  SiGmail,
+  SiSlack,
+  SiTelegram,
+  SiWhatsapp,
+} from "react-icons/si";
+
 const agentActivity = [
   {
     channel: "WhatsApp",
-    mark: "WA",
+    Icon: SiWhatsapp,
     agent: "Sales Agent",
     body: "3 leads replied. Follow-ups are queued.",
     status: "active",
   },
   {
     channel: "Telegram",
-    mark: "TG",
+    Icon: SiTelegram,
     agent: "Alert Agent",
     body: "New request detected and routed to support.",
     status: "routing",
   },
   {
     channel: "Gmail",
-    mark: "GM",
+    Icon: SiGmail,
     agent: "Inbox Agent",
     body: "8 messages classified. 2 need review.",
     status: "synced",
   },
   {
     channel: "Slack",
-    mark: "SL",
+    Icon: SiSlack,
     agent: "Ops Agent",
     body: "Daily brief posted to #operations.",
     status: "sent",
   },
   {
     channel: "WhatsApp",
-    mark: "WA",
+    Icon: SiWhatsapp,
     agent: "Customer Agent",
     body: "Order update sent. Waiting for confirmation.",
     status: "waiting",
   },
   {
     channel: "Telegram",
-    mark: "TG",
+    Icon: SiTelegram,
     agent: "Community Agent",
     body: "5 new questions grouped by topic.",
     status: "working",
   },
   {
     channel: "Gmail",
-    mark: "GM",
+    Icon: SiGmail,
     agent: "Support Agent",
     body: "Urgent thread identified and escalated.",
     status: "reviewing",
   },
   {
     channel: "Slack",
-    mark: "SL",
+    Icon: SiSlack,
     agent: "Internal Agent",
     body: "Incident summary shared with the team.",
     status: "posted",
   },
   {
     channel: "Gmail",
-    mark: "GM",
+    Icon: SiGmail,
     agent: "Follow-up Agent",
     body: "Reminder drafted for inactive conversations.",
     status: "ready",
@@ -69,11 +76,15 @@ function AgentCard({
 }: {
   item: (typeof agentActivity)[number];
 }) {
+  const Icon = item.Icon;
+
   return (
     <article className="agent-card">
       <div className="agent-card-top">
         <div className="channel-badge">
-          <span className="channel-mark">{item.mark}</span>
+          <span className="channel-mark" aria-hidden="true">
+            <Icon />
+          </span>
           <span>{item.channel}</span>
         </div>
         <span className="agent-status">
