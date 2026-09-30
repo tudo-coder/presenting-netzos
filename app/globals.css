@@ -38,7 +38,7 @@ button {
 .testimonial-background {
   position: absolute;
   inset: -18vh -10vw;
-  z-index: -2;
+  z-index: 0;
   overflow: hidden;
   perspective: 650px;
   pointer-events: none;
@@ -72,6 +72,7 @@ button {
   flex-direction: column;
   gap: 16px;
   animation: marquee-vertical 38s linear infinite;
+  animation-play-state: running;
   will-change: transform;
   transform: translate3d(0, 0, 0);
   backface-visibility: hidden;
@@ -153,7 +154,7 @@ button {
 
 .hero {
   position: relative;
-  z-index: 2;
+  z-index: 1;
   width: min(760px, calc(100vw - 48px));
   display: flex;
   flex-direction: column;
@@ -278,8 +279,3 @@ button {
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .marquee-track {
-    animation-play-state: paused;
-  }
-}
