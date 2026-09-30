@@ -61,27 +61,37 @@ button {
 }
 
 .marquee-column {
-  height: 145%;
+  height: 100%;
   overflow: hidden;
+  padding: 8px;
+  contain: paint;
 }
 
 .marquee-track {
   display: flex;
   flex-direction: column;
   gap: 16px;
-  padding: 8px;
   animation: marquee-vertical 38s linear infinite;
   will-change: transform;
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+}
+
+.marquee-group {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  gap: 16px;
 }
 
 .marquee-track.reverse {
-  animation-direction: reverse;
+  animation-name: marquee-vertical-reverse;
   animation-duration: 44s;
 }
 
 .testimonial-card {
   flex: none;
-  min-height: 126px;
+  height: 126px;
   padding: 16px;
   border: 1px solid rgba(24, 24, 22, 0.09);
   border-radius: 17px;
@@ -90,7 +100,8 @@ button {
     0 10px 35px rgba(35, 35, 30, 0.045),
     inset 0 1px 0 rgba(255, 255, 255, 0.92);
   color: #262624;
-  backdrop-filter: blur(8px);
+  backface-visibility: hidden;
+  transform: translateZ(0);
 }
 
 .testimonial-author {
@@ -191,11 +202,21 @@ button {
 
 @keyframes marquee-vertical {
   from {
-    transform: translateY(0);
+    transform: translate3d(0, 0, 0);
   }
 
   to {
-    transform: translateY(calc(-50% - 8px));
+    transform: translate3d(0, -1278px, 0);
+  }
+}
+
+@keyframes marquee-vertical-reverse {
+  from {
+    transform: translate3d(0, -1278px, 0);
+  }
+
+  to {
+    transform: translate3d(0, 0, 0);
   }
 }
 
@@ -218,8 +239,28 @@ button {
   }
 
   .testimonial-card {
-    min-height: 112px;
+    height: 112px;
     padding: 14px;
+  }
+
+  @keyframes marquee-vertical {
+    from {
+      transform: translate3d(0, 0, 0);
+    }
+
+    to {
+      transform: translate3d(0, -1152px, 0);
+    }
+  }
+
+  @keyframes marquee-vertical-reverse {
+    from {
+      transform: translate3d(0, -1152px, 0);
+    }
+
+    to {
+      transform: translate3d(0, 0, 0);
+    }
   }
 }
 
