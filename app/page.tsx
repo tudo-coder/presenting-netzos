@@ -10,11 +10,13 @@ import {
   FiHome,
   FiMenu,
   FiMessageSquare,
+  FiBriefcase,
   FiSettings,
   FiSliders,
   FiZap,
 } from "react-icons/fi";
 import { SiTelegram, SiWhatsapp } from "react-icons/si";
+import { OrganizationsFeature } from "./organizations";
 
 const agentActivity = [
   {
@@ -169,6 +171,7 @@ function MarqueeColumn({
 
 const primaryNavigation = [
   { label: "Home", Icon: FiHome },
+  { label: "Organizações", Icon: FiBriefcase },
   { label: "Agents", Icon: FiCpu },
   { label: "Channels", Icon: FiGrid },
   { label: "Conversations", Icon: FiMessageSquare },
@@ -298,7 +301,9 @@ export default function Home() {
             </div>
           </aside>
 
-          <div className="dashboard-content" />
+          <div className="dashboard-content">
+            {activeNav === "Organizações" && <OrganizationsFeature />}
+          </div>
         </div>
       </main>
     );
