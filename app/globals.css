@@ -596,13 +596,22 @@ button {
 }
 
 @media (max-width: 760px) {
+  .dashboard {
+    min-height: 100dvh;
+  }
+
   .dashboard-header {
-    min-height: 68px;
-    padding: 0 18px;
+    min-height: calc(68px + env(safe-area-inset-top));
+    padding:
+      env(safe-area-inset-top)
+      max(18px, env(safe-area-inset-right))
+      0
+      max(18px, env(safe-area-inset-left));
   }
 
   .dashboard-shell {
-    height: calc(100vh - 68px);
+    height: calc(100vh - 68px - env(safe-area-inset-top));
+    height: calc(100dvh - 68px - env(safe-area-inset-top));
   }
 
   .dashboard-sidebar,
