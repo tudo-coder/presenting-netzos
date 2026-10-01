@@ -807,7 +807,7 @@ function ImportModal({
           });
       } else if (/\.xlsx$/i.test(file.name)) {
         const reader = await import("read-excel-file/browser");
-        grid = (await reader.default(file)) as unknown[][];
+        grid = (await reader.default(file)) as unknown as unknown[][];
       } else {
         throw new Error("Selecione um arquivo .csv ou .xlsx.");
       }
