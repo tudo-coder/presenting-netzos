@@ -11,6 +11,7 @@ import {
   FiUsers,
 } from "react-icons/fi";
 import { OperationDialog } from "./operation-dialog";
+import { OperationDetail } from "./operation-detail";
 import {
   KIND_LABELS,
   addDays,
@@ -44,7 +45,7 @@ export function MyAgendaFeature({
 }: {
   onOpenOrganizations: () => void;
 }) {
-  const { operations, saveOperation: persistOperation, organizations, workspaces, ready, error } = useOperationsStore();
+  const { operations, saveOperation: persistOperation, organizations, workspaces, ready, error, refresh } = useOperationsStore();
   const [view, setView] = useState<ViewMode>("month");
   const [cursor, setCursor] = useState(todayBelem());
   const [creatingKind, setCreatingKind] = useState<OperationKind | null>(null);
@@ -414,19 +415,25 @@ export function MyAgendaFeature({
         </div>
       )}
 
-      {(creatingKind || editing) && (
+      {creatingKind && (
         <OperationDialog
           variant="agenda"
-          kind={editing?.kind || creatingKind || "event"}
-          operation={editing}
+          kind={creatingKind}
           organizations={organizations}
           workspaces={workspaces}
           initialDate={cursor}
-          onClose={() => {
-            setCreatingKind(null);
-            setEditing(null);
-          }}
+          onClose={() => setCreatingKind(null)}
           onSave={saveOperation}
+        />
+      )}
+
+      {editing && (
+        <OperationDetail
+          operation={editing}
+          operations={operations}
+          onClose={() => setEditing(null)}
+          onSave={persistOperation}
+          onRefresh={refresh}
         />
       )}
     </section>
