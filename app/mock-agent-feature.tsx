@@ -264,21 +264,16 @@ export function MockAgentFeature() {
         );
       }
 
-      const start = await netzosApi<any>(
-        "meetings/" + meetingId + "/media/upload",
-        {
-          method: "POST",
-          body: {
-            external_id: externalId("audio"),
-            name: file.name,
-            mime: file.type || "audio/ogg",
-            size: file.size,
-            purpose: "recording",
-          },
-        },
-      );
+      const startEvent = await ingest("meeting.media.upload", {
+        external_id: externalId("audio"),
+        name: file.name,
+        mime: file.type || "audio/ogg",
+        size: file.size,
+        purpose: "recording",
+      });
+      const start = startEvent?.result;
 
-      if (start.completed) {
+      if (start?.completed) {
         setMessage("Este áudio já havia sido concluído.");
         return;
       }
@@ -294,16 +289,13 @@ export function MockAgentFeature() {
         file,
       });
 
-      await netzosApi(
-        "meetings/" +
-          meetingId +
-          "/media/" +
-          start.upload_id +
-          "/complete",
-        { method: "POST" },
-      );
+      await ingest("meeting.media.complete", {
+        upload_id: start.upload_id,
+      });
 
-      setMessage("Áudio salvo no Storage privado e vinculado à reunião.");
+      setMessage(
+        "Áudio salvo no Storage privado e vinculado à reunião pelo fluxo do agente.",
+      );
     });
 
   const copyCredential = async () => {
