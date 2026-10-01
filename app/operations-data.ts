@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { supabase } from "./supabase";
+import { getSupabase } from "./supabase";
 
 export type OrganizationRef = {
   id: string;
@@ -124,7 +124,8 @@ export function useOperationsStore() {
   useEffect(() => {
     let active = true;
 
-    void supabase.auth.getUser().then(({ data }) => {
+    void getSupabase().then(async (supabase) => {
+      const { data } = await supabase.auth.getUser();
       if (!active) return;
 
       const userId = data.user?.id;
