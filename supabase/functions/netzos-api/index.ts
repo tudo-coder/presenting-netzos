@@ -946,6 +946,9 @@ async function ingest(actor: any, payload: any) {
         result = await createTask(effective, operationId, { ...(event.payload || {}), external_id: event.payload?.external_id || eventId });
       } else if (eventType === "meeting.media.upload") {
         result = await startUpload(effective, operationId, { ...(event.payload || {}), external_id: event.payload?.external_id || eventId });
+      } else if (eventType === "meeting.media.complete") {
+        const uploadId = text(event.payload?.upload_id, "event.payload.upload_id", 200) as string;
+        result = await completeUpload(effective, operationId, uploadId);
       } else {
         apiError("invalid_request", "Tipo de evento não suportado.", 400);
       }
