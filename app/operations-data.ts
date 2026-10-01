@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import type { RealtimeChannel } from "@supabase/supabase-js";
 import { getSupabase } from "./supabase";
 import { migrateLegacyNetzOSData } from "./netzos-data";
 import { logAudit } from "./reference-data";
@@ -371,7 +372,7 @@ export function useOperationsStore() {
   useEffect(() => {
     let active = true;
     let timer: ReturnType<typeof setTimeout> | null = null;
-    let channel: Awaited<ReturnType<typeof getSupabase>>["realtime"]["channels"][number] | null = null;
+    let channel: RealtimeChannel | null = null;
 
     const scheduleRefresh = () => {
       if (!active) return;
