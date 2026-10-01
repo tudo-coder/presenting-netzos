@@ -150,6 +150,19 @@ export type SystemDefinition = {
   pages: SystemPage[];
 };
 
+export type TableRelation = {
+  id: string;
+  ownerId: string;
+  workspaceId: string;
+  sourceTableId: string;
+  fieldId: string;
+  targetTableId: string;
+  cardinality: "many" | "one";
+  required: boolean;
+  pairKey: string | null;
+  createdAt: string;
+};
+
 export type SystemResource = {
   id: string;
   ownerId: string;
@@ -283,6 +296,7 @@ export type ReferenceData = {
   records: DataRecord[];
   dashboards: Dashboard[];
   systems: SystemResource[];
+  relations: TableRelation[];
   grants: AccessGrant[];
   events: AuditEvent[];
   connections: IntegrationConnection[];
@@ -298,6 +312,7 @@ const EMPTY_DATA: ReferenceData = {
   records: [],
   dashboards: [],
   systems: [],
+  relations: [],
   grants: [],
   events: [],
   connections: [],
@@ -470,6 +485,7 @@ export function useReferenceData() {
       records,
       dashboards,
       systems,
+      relations,
       grants,
       events,
       connections,
@@ -510,6 +526,12 @@ export function useReferenceData() {
         )
         .order("updated_at", { ascending: false }),
       supabase
+        .from("table_relations")
+        .select(
+          "id,owner_id,workspace_id,source_table_id,field_id,target_table_id,cardinality,required,pair_key,created_at",
+        )
+        .order("created_at", { ascending: false }),
+      supabase
         .from("access_grants")
         .select(
           "id,owner_id,email,user_id,kind,resource_id,role,columns,row_scope,created_at,accepted_at,expires_at",
@@ -549,6 +571,7 @@ export function useReferenceData() {
       records,
       dashboards,
       systems,
+      relations,
       grants,
       events,
       connections,
@@ -625,6 +648,18 @@ export function useReferenceData() {
         version: item.version || 0,
         createdAt: item.created_at,
         updatedAt: item.updated_at,
+      })),
+      relations: (relations.data || []).map((item: any) => ({
+        id: item.id,
+        ownerId: item.owner_id,
+        workspaceId: item.workspace_id,
+        sourceTableId: item.source_table_id,
+        fieldId: item.field_id,
+        targetTableId: item.target_table_id,
+        cardinality: item.cardinality,
+        required: !!item.required,
+        pairKey: item.pair_key,
+        createdAt: item.created_at,
       })),
       grants: (grants.data || []).map((item: any) => ({
         id: item.id,
