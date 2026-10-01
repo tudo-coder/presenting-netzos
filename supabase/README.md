@@ -50,3 +50,41 @@ The Agenda does not store duplicate calendar rows. It projects dated `operationa
 All exposed tables use RLS. The current product model is ownership-first: organizations/workspaces belong to the signed-in Supabase user, and operational items are visible to their creator/responsible user. The frontend uses the authenticated Supabase session directly.
 
 Existing browser data is migrated once after sign-in by `app/netzos-data.ts`. After migration, normal reads and writes use Supabase; localStorage remains only as the legacy migration source.
+
+
+## NetzOS operational API
+
+The meeting/agent ingestion API is deployed as the `netzos-api` Edge Function.
+
+Base path:
+
+`https://cuhqzqpyhzciqxxcjgtg.supabase.co/functions/v1/netzos-api/v1`
+
+The function intentionally sets `verify_jwt = false` at the platform layer because it performs its own authentication and supports two caller types:
+
+- a Supabase user JWT in `Authorization: Bearer <jwt>`;
+- a NetzOS integration credential in `Authorization: Bearer netzos_ak_...`.
+
+Integration credentials are generated from an authenticated NetzOS binding. Only a SHA-256 hash is persisted in `agent_api_credentials`; the plaintext token is returned once.
+
+Implemented v1 routes:
+
+- `GET /health`
+- `GET|POST /bindings`
+- `PATCH /bindings/:id`
+- `POST /bindings/:id/credentials`
+- `POST /meetings`
+- `GET|PATCH /meetings/:id`
+- `POST /meetings/:id/texts`
+- `PUT /meetings/:id/transcript`
+- `GET /meetings/:id/media`
+- `POST /meetings/:id/media/upload`
+- `POST /meetings/:id/media/:uploadId/complete`
+- `POST /meetings/:id/tasks`
+- `POST /ingest/events`
+
+The mock group agent lives under **Conexões > Canais** and calls this real API. It can create a binding, generate a one-time integration API key, insert meetings/text/transcripts/tasks, upload meeting audio through a signed Storage upload, and revoke the binding.
+
+Schema additions are versioned in `supabase/agent-ingestion.sql`. The API source is versioned in `supabase/functions/netzos-api/index.ts`.
+
+Operational Realtime is enabled for `operational_items`, `operational_people`, `operational_comments`, `operational_files`, and `operational_transcripts`, so API-originated meeting data can refresh the product without creating parallel calendar entities.
