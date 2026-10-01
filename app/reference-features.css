@@ -327,3 +327,59 @@
   .ref-tabs button{padding:0 9px;font-size:8px}
   .system-runtime-grid,.dashboard-card-grid{display:block}.system-runtime-block,.system-runtime-shortcut,.dashboard-data-card{margin-bottom:8px}
 }
+
+
+/* Mock Agent */
+.mock-agent-panel{
+  display:grid;
+  gap:14px;
+  margin-bottom:18px;
+  border:1px solid rgba(24,24,22,.07);
+  border-radius:17px;
+  background:#f3f3ef;
+  padding:16px;
+}
+.mock-agent-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:12px;
+}
+.mock-agent-actions{
+  display:flex;
+  flex-wrap:wrap;
+  gap:7px;
+}
+.mock-agent-secret{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  gap:8px;
+  align-items:center;
+  border:1px solid rgba(24,24,22,.08);
+  border-radius:11px;
+  background:#ecece7;
+  padding:10px;
+}
+.mock-agent-secret>span{
+  grid-column:1/-1;
+  color:#8b8b84;
+  font-size:7px;
+  font-weight:700;
+  text-transform:uppercase;
+  letter-spacing:.06em;
+}
+.mock-agent-secret code{
+  min-width:0;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  color:#4d4d47;
+  font-size:8px;
+}
+.mock-agent-upload{position:relative}
+
+@media(max-width:760px){
+  .mock-agent-panel{padding:12px}
+  .mock-agent-grid{grid-template-columns:1fr}
+  .mock-agent-secret{grid-template-columns:1fr}
+  .mock-agent-secret>span{grid-column:auto}
+}
