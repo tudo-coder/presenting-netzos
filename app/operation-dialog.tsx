@@ -29,7 +29,7 @@ export function OperationDialog({
   workspaces: WorkspaceRef[];
   initialDate?: string;
   onClose: () => void;
-  onSave: (operation: Operation) => void;
+  onSave: (operation: Operation) => void | Promise<void>;
 }) {
   const [title, setTitle] = useState(operation?.title || "");
   const [description, setDescription] = useState(operation?.description || "");
@@ -43,6 +43,8 @@ export function OperationDialog({
   const [endDate, setEndDate] = useState(operation?.endDate || "");
   const [endTime, setEndTime] = useState(operation?.endTime || "");
   const [location, setLocation] = useState(operation?.location || "");
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   const filteredWorkspaces = useMemo(
     () => workspaces.filter((workspace) => workspace.organizationId === organizationId),
@@ -75,31 +77,44 @@ export function OperationDialog({
 
         <form
           className="ops-form"
-          onSubmit={(event) => {
+          onSubmit={async (event) => {
             event.preventDefault();
-            if (!title.trim() || !organizationId) return;
+            if (!title.trim() || !organizationId || saving) return;
             const now = new Date().toISOString();
-            onSave({
-              id: operation?.id || makeOperationId(),
-              kind,
-              organizationId,
-              workspaceId: workspaceId || null,
-              title: title.trim(),
-              description: description.trim(),
-              status: operation?.status || (kind === "task" ? "todo" : "scheduled"),
-              priority,
-              date: date || null,
-              time: time || null,
-              endDate: endDate || null,
-              endTime: endTime || null,
-              timezone: "America/Belem",
-              location: location.trim(),
-              responsible: "me",
-              people: operation?.people || [],
-              createdAt: operation?.createdAt || now,
-              updatedAt: now,
-              completedAt: operation?.completedAt || null,
-            });
+            setSaving(true);
+            setSaveError(null);
+
+            try {
+              await onSave({
+                id: operation?.id || makeOperationId(),
+                kind,
+                organizationId,
+                workspaceId: workspaceId || null,
+                title: title.trim(),
+                description: description.trim(),
+                status: operation?.status || (kind === "task" ? "todo" : "scheduled"),
+                priority,
+                date: date || null,
+                time: time || null,
+                endDate: endDate || null,
+                endTime: endTime || null,
+                timezone: "America/Belem",
+                location: location.trim(),
+                responsible: "me",
+                people: operation?.people || [],
+                createdAt: operation?.createdAt || now,
+                updatedAt: now,
+                completedAt: operation?.completedAt || null,
+              });
+            } catch (cause) {
+              setSaveError(
+                cause instanceof Error
+                  ? cause.message
+                  : "Não foi possível salvar no Supabase.",
+              );
+            } finally {
+              setSaving(false);
+            }
           }}
         >
           <label className="ops-field full">
@@ -192,12 +207,14 @@ export function OperationDialog({
             </label>
           </div>
 
+          {saveError && <p className="auth-feedback error">{saveError}</p>}
+
           <div className="ops-form-actions">
-            <button className="ops-button secondary" type="button" onClick={onClose}>
+            <button className="ops-button secondary" type="button" onClick={onClose} disabled={saving}>
               Cancelar
             </button>
-            <button className="ops-button primary" type="submit" disabled={!title.trim() || !organizationId}>
-              Salvar
+            <button className="ops-button primary" type="submit" disabled={saving || !title.trim() || !organizationId}>
+              {saving ? "Salvando…" : "Salvar"}
             </button>
           </div>
         </form>
