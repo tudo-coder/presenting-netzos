@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { supabase } from "./supabase";
 
 export type OrganizationRef = {
   id: string;
@@ -118,32 +119,66 @@ export function useOperationsStore() {
   const [organizations, setOrganizations] = useState<OrganizationRef[]>([]);
   const [workspaces, setWorkspaces] = useState<WorkspaceRef[]>([]);
   const [ready, setReady] = useState(false);
+  const [operationsStorageKey, setOperationsStorageKey] = useState<string | null>(null);
 
   useEffect(() => {
-    try {
-      const savedOperations = localStorage.getItem(OPERATIONS_KEY);
-      if (savedOperations) {
-        const parsed = JSON.parse(savedOperations);
-        setOperations(Array.isArray(parsed) ? parsed : []);
+    let active = true;
+
+    void supabase.auth.getUser().then(({ data }) => {
+      if (!active) return;
+
+      const userId = data.user?.id;
+      if (!userId) {
+        setReady(true);
+        return;
       }
 
-      const savedOrganizations = localStorage.getItem(ORGANIZATIONS_KEY);
-      if (savedOrganizations) {
-        const parsed = JSON.parse(savedOrganizations);
-        setOrganizations(Array.isArray(parsed.organizations) ? parsed.organizations : []);
-        setWorkspaces(Array.isArray(parsed.workspaces) ? parsed.workspaces : []);
+      const userOperationsKey = OPERATIONS_KEY + ":" + userId;
+      const userOrganizationsKey = ORGANIZATIONS_KEY + ":" + userId;
+      setOperationsStorageKey(userOperationsKey);
+
+      try {
+        const savedOperations =
+          localStorage.getItem(userOperationsKey) || localStorage.getItem(OPERATIONS_KEY);
+
+        if (savedOperations) {
+          const parsed = JSON.parse(savedOperations);
+          setOperations(Array.isArray(parsed) ? parsed : []);
+
+          if (!localStorage.getItem(userOperationsKey)) {
+            localStorage.setItem(userOperationsKey, savedOperations);
+          }
+        }
+
+        const savedOrganizations =
+          localStorage.getItem(userOrganizationsKey) ||
+          localStorage.getItem(ORGANIZATIONS_KEY);
+
+        if (savedOrganizations) {
+          const parsed = JSON.parse(savedOrganizations);
+          setOrganizations(Array.isArray(parsed.organizations) ? parsed.organizations : []);
+          setWorkspaces(Array.isArray(parsed.workspaces) ? parsed.workspaces : []);
+
+          if (!localStorage.getItem(userOrganizationsKey)) {
+            localStorage.setItem(userOrganizationsKey, savedOrganizations);
+          }
+        }
+      } catch {
+        setOperations([]);
+      } finally {
+        setReady(true);
       }
-    } catch {
-      setOperations([]);
-    } finally {
-      setReady(true);
-    }
+    });
+
+    return () => {
+      active = false;
+    };
   }, []);
 
   useEffect(() => {
-    if (!ready) return;
-    localStorage.setItem(OPERATIONS_KEY, JSON.stringify(operations));
-  }, [operations, ready]);
+    if (!ready || !operationsStorageKey) return;
+    localStorage.setItem(operationsStorageKey, JSON.stringify(operations));
+  }, [operations, operationsStorageKey, ready]);
 
   return { operations, setOperations, organizations, workspaces, ready };
 }
