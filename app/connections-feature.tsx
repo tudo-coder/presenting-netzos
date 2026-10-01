@@ -16,6 +16,7 @@ import {
 import { getSupabase } from "./supabase";
 import { makeResourceId } from "./netzos-data";
 import { useOperationsStore } from "./operations-data";
+import { MockAgentFeature } from "./mock-agent-feature";
 import {
   logAudit,
   type IntegrationConnection,
@@ -402,6 +403,8 @@ export function ConnectionsFeature() {
           Calendário
         </button>
       </nav>
+
+      {tab === "channels" && <MockAgentFeature />}
 
       {tab === "calendar" && (
         <section className="connection-calendar-export">
