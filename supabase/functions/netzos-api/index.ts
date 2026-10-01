@@ -822,8 +822,16 @@ async function saveBinding(actor: any, payload: any) {
   const provider = (text(payload.provider || "mock", "provider", 40) as string);
   if (!["mock", "api", "whatsapp", "telegram"].includes(provider)) apiError("invalid_request", "provider inválido.", 400);
   const externalChannelId = text(payload.external_channel_id, "external_channel_id", 300) as string;
+  const current = await admin.from("agent_channel_bindings")
+    .select("id")
+    .eq("owner_id", actor.ownerId)
+    .eq("provider", provider)
+    .eq("external_channel_id", externalChannelId)
+    .maybeSingle();
+  if (current.error) throw current.error;
+
   const row = {
-    id: id("binding"),
+    id: current.data?.id || id("binding"),
     owner_id: actor.ownerId,
     provider,
     external_channel_id: externalChannelId,
