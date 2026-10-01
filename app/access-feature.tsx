@@ -63,27 +63,58 @@ function resourcesForKind(
 ) {
   if (kind === "organization") {
     return data.organizations
-      .filter((item) => item.ownerId === userId)
+      .filter((item) =>
+        canManage(resourceRole(data, userId, "organization", item.id)),
+      )
       .map((item) => [item.id, item.name] as const);
   }
   if (kind === "workspace") {
     return data.workspaces
-      .filter((item) => item.ownerId === userId)
+      .filter((item) =>
+        canManage(resourceRole(data, userId, "workspace", item.id)),
+      )
       .map((item) => [item.id, item.name] as const);
   }
   if (kind === "dashboard") {
     return data.dashboards
-      .filter((item) => item.ownerId === userId)
+      .filter((item) =>
+        canManage(resourceRole(data, userId, "dashboard", item.id)),
+      )
       .map((item) => [item.id, item.name] as const);
   }
   if (kind === "system") {
     return data.systems
-      .filter((item) => item.ownerId === userId)
+      .filter((item) =>
+        canManage(resourceRole(data, userId, "system", item.id)),
+      )
       .map((item) => [item.id, item.name] as const);
   }
   return data.tables
-    .filter((item) => item.ownerId === userId)
+    .filter((item) =>
+      canManage(resourceRole(data, userId, kind, item.id)),
+    )
     .map((item) => [item.id, item.name] as const);
+}
+
+
+function resourceOwnerId(
+  kind: Kind,
+  resourceId: string,
+  data: ReturnType<typeof useReferenceData>["data"],
+) {
+  if (kind === "organization") {
+    return data.organizations.find((item) => item.id === resourceId)?.ownerId || "";
+  }
+  if (kind === "workspace") {
+    return data.workspaces.find((item) => item.id === resourceId)?.ownerId || "";
+  }
+  if (kind === "dashboard") {
+    return data.dashboards.find((item) => item.id === resourceId)?.ownerId || "";
+  }
+  if (kind === "system") {
+    return data.systems.find((item) => item.id === resourceId)?.ownerId || "";
+  }
+  return data.tables.find((item) => item.id === resourceId)?.ownerId || "";
 }
 
 export function SharedFeature({
@@ -277,7 +308,12 @@ export function AccessFeature() {
       ? data.tables.find((item) => item.id === resourceId)
       : null;
 
-  const ownedGrants = data.grants.filter((grant) => grant.ownerId === userId);
+  const ownedGrants = data.grants.filter(
+    (grant) =>
+      grant.ownerId === userId ||
+      grant.createdBy === userId ||
+      canManage(resourceRole(data, userId, grant.kind, grant.resourceId)),
+  );
 
   const resetResource = (nextKind: Kind) => {
     setKind(nextKind);
@@ -307,7 +343,8 @@ export function AccessFeature() {
 
       const { error: insertError } = await supabase.from("access_grants").insert({
         id,
-        owner_id: userId,
+        owner_id: resourceOwnerId(kind, resourceId, data),
+        created_by: userId,
         email,
         kind,
         resource_id: resourceId,
@@ -430,7 +467,6 @@ export function AccessFeature() {
             >
               {Object.entries(ACCESS_ROLE_LABELS)
                 .filter(([value]) => value !== "owner")
-                .filter(([value]) => !["dashboard", "system"].includes(kind) || value === "viewer")
                 .filter(([value]) => kind === "form" || value !== "operator")
                 .map(([value, label]) => (
                   <option value={value} key={value}>{label}</option>
