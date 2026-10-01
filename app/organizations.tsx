@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { supabase } from "./supabase";
 import {
   FiArrowLeft,
   FiBriefcase,
@@ -119,28 +120,54 @@ export function OrganizationsFeature() {
   const [newOrganizationOpen, setNewOrganizationOpen] = useState(false);
   const [editingOrganization, setEditingOrganization] = useState<Organization | null>(null);
   const [newWorkspaceOpen, setNewWorkspaceOpen] = useState(false);
+  const [storageKey, setStorageKey] = useState<string | null>(null);
 
   useEffect(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) {
-        const parsed = JSON.parse(saved) as Partial<OrganizationStore>;
-        setStore({
-          organizations: Array.isArray(parsed.organizations) ? parsed.organizations : [],
-          workspaces: Array.isArray(parsed.workspaces) ? parsed.workspaces : [],
-        });
+    let active = true;
+
+    void supabase.auth.getUser().then(({ data }) => {
+      if (!active) return;
+
+      const userId = data.user?.id;
+      if (!userId) {
+        setReady(true);
+        return;
       }
-    } catch {
-      setStore(EMPTY_STORE);
-    } finally {
-      setReady(true);
-    }
+
+      const userStorageKey = STORAGE_KEY + ":" + userId;
+      setStorageKey(userStorageKey);
+
+      try {
+        const saved =
+          localStorage.getItem(userStorageKey) || localStorage.getItem(STORAGE_KEY);
+
+        if (saved) {
+          const parsed = JSON.parse(saved) as Partial<OrganizationStore>;
+          setStore({
+            organizations: Array.isArray(parsed.organizations) ? parsed.organizations : [],
+            workspaces: Array.isArray(parsed.workspaces) ? parsed.workspaces : [],
+          });
+
+          if (!localStorage.getItem(userStorageKey)) {
+            localStorage.setItem(userStorageKey, saved);
+          }
+        }
+      } catch {
+        setStore(EMPTY_STORE);
+      } finally {
+        setReady(true);
+      }
+    });
+
+    return () => {
+      active = false;
+    };
   }, []);
 
   useEffect(() => {
-    if (!ready) return;
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(store));
-  }, [ready, store]);
+    if (!ready || !storageKey) return;
+    localStorage.setItem(storageKey, JSON.stringify(store));
+  }, [ready, storageKey, store]);
 
   const selectedOrganization = useMemo(
     () => store.organizations.find((organization) => organization.id === selectedId) || null,
