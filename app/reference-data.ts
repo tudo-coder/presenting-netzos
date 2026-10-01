@@ -509,10 +509,7 @@ export function useReferenceData() {
           "id,owner_id,workspace_id,name,description,fields,version,source_kind,filename,created_at,updated_at",
         )
         .order("created_at", { ascending: false }),
-      supabase
-        .from("data_records")
-        .select("id,table_id,author_id,values,created_at,updated_at")
-        .order("created_at", { ascending: false }),
+      supabase.rpc("netzos_accessible_records"),
       supabase
         .from("dashboards")
         .select(
