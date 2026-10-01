@@ -2,25 +2,39 @@
 
 import { useEffect, useState } from "react";
 import {
-  FiActivity,
-  FiChevronLeft,
-  FiCpu,
-  FiGrid,
-  FiHelpCircle,
-  FiHome,
-  FiMenu,
-  FiMessageSquare,
+  FiBarChart2,
   FiBriefcase,
   FiCalendar,
   FiCheckSquare,
+  FiChevronLeft,
+  FiDatabase,
+  FiHelpCircle,
+  FiHome,
+  FiLayout,
+  FiLink2,
+  FiMenu,
   FiSettings,
-  FiSliders,
+  FiShare2,
+  FiSparkles,
+  FiUserCheck,
   FiZap,
 } from "react-icons/fi";
+import type { IconType } from "react-icons";
 import { SiTelegram, SiWhatsapp } from "react-icons/si";
 import { OrganizationsFeature } from "./organizations";
 import { MyTasksFeature } from "./my-tasks";
 import { MyAgendaFeature } from "./my-agenda";
+import { MySpaceFeature } from "./my-space-feature";
+import { DataFeature } from "./data-feature";
+import { SystemsFeature } from "./systems-feature";
+import {
+  DashboardsFeature,
+  PublishedDashboard,
+} from "./dashboard-feature";
+import { ConnectionsFeature } from "./connections-feature";
+import { AutomationsFeature } from "./automations-feature";
+import { AccessFeature, SharedFeature } from "./access-feature";
+import { NetsFeature } from "./nets-feature";
 import { AuthModal } from "./auth-modal";
 import { SettingsFeature } from "./settings";
 import { getSupabase } from "./supabase";
@@ -177,20 +191,22 @@ function MarqueeColumn({
   );
 }
 
-const primaryNavigation = [
-  { label: "Home", Icon: FiHome },
+const primaryNavigation: Array<{ label: string; Icon: IconType }> = [
+  { label: "Meu espaço", Icon: FiHome },
   { label: "Minhas tarefas", Icon: FiCheckSquare },
   { label: "Minha Agenda", Icon: FiCalendar },
   { label: "Organizações", Icon: FiBriefcase },
-  { label: "Agents", Icon: FiCpu },
-  { label: "Channels", Icon: FiGrid },
-  { label: "Conversations", Icon: FiMessageSquare },
-  { label: "Automations", Icon: FiZap },
-  { label: "Activity", Icon: FiActivity },
-  { label: "Integrations", Icon: FiSliders },
+  { label: "Dados", Icon: FiDatabase },
+  { label: "Sistemas", Icon: FiLayout },
+  { label: "Dashboards", Icon: FiBarChart2 },
+  { label: "Conexões", Icon: FiLink2 },
+  { label: "Automações", Icon: FiZap },
+  { label: "Compartilhados comigo", Icon: FiShare2 },
+  { label: "Pessoas e Acessos", Icon: FiUserCheck },
+  { label: "Nets", Icon: FiSparkles },
 ];
 
-const secondaryNavigation = [
+const secondaryNavigation: Array<{ label: string; Icon: IconType }> = [
   { label: "Settings", Icon: FiSettings },
   { label: "Help", Icon: FiHelpCircle },
 ];
@@ -199,7 +215,9 @@ export default function Home() {
   const [session, setSession] = useState<Session | null>(null);
   const [authReady, setAuthReady] = useState(false);
   const [authOpen, setAuthOpen] = useState(false);
-  const [activeNav, setActiveNav] = useState("Home");
+  const [activeNav, setActiveNav] = useState("Meu espaço");
+  const [dataInitialTableId, setDataInitialTableId] = useState("");
+  const [publicationId, setPublicationId] = useState("");
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
@@ -241,6 +259,11 @@ export default function Home() {
     if (params.get("settings") === "chatgpt") {
       setActiveNav("Settings");
     }
+    if (params.get("invite")) {
+      setActiveNav("Compartilhados comigo");
+    }
+    const publication = params.get("publication");
+    if (publication) setPublicationId(publication);
   }, [session]);
 
   if (session) {
@@ -249,7 +272,7 @@ export default function Home() {
       Icon,
     }: {
       label: string;
-      Icon: typeof FiHome;
+      Icon: IconType;
     }) => {
       const active = activeNav === label;
 
@@ -272,6 +295,25 @@ export default function Home() {
       );
     };
 
+    if (publicationId) {
+      return (
+        <PublishedDashboard
+          publicationId={publicationId}
+          onClose={() => {
+            setPublicationId("");
+            const params = new URLSearchParams(window.location.search);
+            params.delete("publication");
+            const query = params.toString();
+            window.history.replaceState(
+              {},
+              "",
+              window.location.pathname + (query ? "?" + query : ""),
+            );
+          }}
+        />
+      );
+    }
+
     return (
       <main className="dashboard">
         <header className="dashboard-header">
@@ -282,7 +324,7 @@ export default function Home() {
             onClick={async () => {
               const supabase = await getSupabase();
               await supabase.auth.signOut();
-              setActiveNav("Home");
+              setActiveNav("Meu espaço");
               setSidebarOpen(false);
             }}
           >
@@ -359,14 +401,119 @@ export default function Home() {
           </aside>
 
           <div className="dashboard-content">
+            {activeNav === "Meu espaço" && (
+              <MySpaceFeature
+                onOpenTasks={() => setActiveNav("Minhas tarefas")}
+                onOpenAgenda={() => setActiveNav("Minha Agenda")}
+                onOpenOrganizations={() => setActiveNav("Organizações")}
+                onOpenData={() => {
+                  setDataInitialTableId("");
+                  setActiveNav("Dados");
+                }}
+                onOpenSystems={() => setActiveNav("Sistemas")}
+                onOpenShared={() => setActiveNav("Compartilhados comigo")}
+                onOpenNets={() => setActiveNav("Nets")}
+              />
+            )}
+
             {activeNav === "Minhas tarefas" && (
-              <MyTasksFeature onOpenOrganizations={() => setActiveNav("Organizações")} />
+              <MyTasksFeature
+                onOpenOrganizations={() => setActiveNav("Organizações")}
+              />
             )}
+
             {activeNav === "Minha Agenda" && (
-              <MyAgendaFeature onOpenOrganizations={() => setActiveNav("Organizações")} />
+              <MyAgendaFeature
+                onOpenOrganizations={() => setActiveNav("Organizações")}
+              />
             )}
-            {activeNav === "Organizações" && <OrganizationsFeature />}
-            {activeNav === "Settings" && <SettingsFeature user={session.user} />}
+
+            {activeNav === "Organizações" && (
+              <OrganizationsFeature
+                onOpenData={() => {
+                  setDataInitialTableId("");
+                  setActiveNav("Dados");
+                }}
+                onOpenSystems={() => setActiveNav("Sistemas")}
+              />
+            )}
+
+            {activeNav === "Dados" && (
+              <DataFeature
+                key={"data-" + dataInitialTableId}
+                initialTableId={dataInitialTableId}
+              />
+            )}
+
+            {activeNav === "Sistemas" && (
+              <SystemsFeature
+                onOpenData={(tableId) => {
+                  setDataInitialTableId(tableId);
+                  setActiveNav("Dados");
+                }}
+              />
+            )}
+
+            {activeNav === "Dashboards" && <DashboardsFeature />}
+
+            {activeNav === "Conexões" && <ConnectionsFeature />}
+
+            {activeNav === "Automações" && <AutomationsFeature />}
+
+            {activeNav === "Compartilhados comigo" && (
+              <SharedFeature
+                onOpen={(kind, id) => {
+                  if (kind === "table" || kind === "form") {
+                    setDataInitialTableId(id);
+                    setActiveNav("Dados");
+                  } else if (kind === "dashboard") {
+                    setActiveNav("Dashboards");
+                  } else if (kind === "system") {
+                    setActiveNav("Sistemas");
+                  } else {
+                    setActiveNav("Organizações");
+                  }
+                }}
+              />
+            )}
+
+            {activeNav === "Pessoas e Acessos" && <AccessFeature />}
+
+            {activeNav === "Nets" && (
+              <NetsFeature
+                onOpenAgenda={() => setActiveNav("Minha Agenda")}
+                onOpenTasks={() => setActiveNav("Minhas tarefas")}
+                onOpenAutomations={() => setActiveNav("Automações")}
+              />
+            )}
+
+            {activeNav === "Settings" && (
+              <SettingsFeature user={session.user} />
+            )}
+
+            {activeNav === "Help" && (
+              <section className="ref-feature">
+                <header className="ref-heading">
+                  <div>
+                    <span className="ref-eyebrow">NetzOS</span>
+                    <h1>Ajuda</h1>
+                    <p>
+                      Organizações reúnem workspaces; dados alimentam sistemas e
+                      dashboards; tarefas, reuniões e compromissos formam a
+                      operação e a agenda.
+                    </p>
+                  </div>
+                </header>
+                <div className="ref-empty compact">
+                  <FiHelpCircle />
+                  <h3>Use a Nets para ações operacionais guiadas</h3>
+                  <p>
+                    Para integrações externas, prepare primeiro uma Conexão e
+                    revise as automações antes de ativá-las.
+                  </p>
+                </div>
+              </section>
+            )}
           </div>
         </div>
       </main>
