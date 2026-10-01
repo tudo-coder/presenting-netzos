@@ -33,3 +33,20 @@ O build estático precisa receber:
 - `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
 
 A chave utilizada no navegador deve ser somente a chave pública/publishable do projeto. Nunca exponha a service role.
+
+
+## Operational data
+
+The current app now persists its operational core in Supabase instead of browser-only localStorage:
+
+- `organizations` — root context owned by the authenticated NetzOS user.
+- `workspaces` — child context linked to one organization.
+- `operational_items` — single source of truth for tasks, meetings and commitments.
+- `operational_people` — people linked to an operational item.
+- `operational_comments`, `operational_files`, `operational_transcripts` — reference-compatible extensions prepared for richer operation/meeting detail.
+
+The Agenda does not store duplicate calendar rows. It projects dated `operational_items`, matching the architecture from the supplied NetzOS reference package.
+
+All exposed tables use RLS. The current product model is ownership-first: organizations/workspaces belong to the signed-in Supabase user, and operational items are visible to their creator/responsible user. The frontend uses the authenticated Supabase session directly.
+
+Existing browser data is migrated once after sign-in by `app/netzos-data.ts`. After migration, normal reads and writes use Supabase; localStorage remains only as the legacy migration source.
