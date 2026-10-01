@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { getSupabase } from "./supabase";
 import { migrateLegacyNetzOSData } from "./netzos-data";
+import { logAudit } from "./reference-data";
 
 export type OrganizationRef = {
   id: string;
@@ -20,6 +21,41 @@ export type TaskStatus = "todo" | "doing" | "done" | "cancelled";
 export type EventStatus = "scheduled" | "held" | "cancelled";
 export type Priority = "normal" | "important" | "urgent";
 
+export type ChecklistItem = {
+  id: string;
+  text: string;
+  done: boolean;
+  responsibleId?: string | null;
+  order: number;
+};
+
+export type MeetingTopic = {
+  id: string;
+  title: string;
+  notes: string;
+  decision: string;
+  linkedTaskIds: string[];
+  order: number;
+};
+
+export type OperationDetails = {
+  checklist: ChecklistItem[];
+  topics: MeetingTopic[];
+  summary: string;
+  decisions: string;
+  notes: string;
+  previousMeetingId: string | null;
+};
+
+export const EMPTY_OPERATION_DETAILS: OperationDetails = {
+  checklist: [],
+  topics: [],
+  summary: "",
+  decisions: "",
+  notes: "",
+  previousMeetingId: null,
+};
+
 export type Operation = {
   id: string;
   kind: OperationKind;
@@ -29,14 +65,23 @@ export type Operation = {
   description: string;
   status: TaskStatus | EventStatus;
   priority: Priority;
+  visibility: "context" | "private";
   date: string | null;
   time: string | null;
   endDate: string | null;
   endTime: string | null;
   timezone: string;
+  duration: number;
   location: string;
   responsible: "me" | null;
+  responsibleId: string | null;
   people: string[];
+  participantIds: string[];
+  meetingId: string | null;
+  origin: string;
+  creatorId: string;
+  details: OperationDetails;
+  version: number;
   createdAt: string;
   updatedAt: string;
   completedAt: string | null;
@@ -51,14 +96,20 @@ type OperationRow = {
   description: string;
   status: TaskStatus | EventStatus;
   priority: Priority;
+  visibility: "context" | "private";
   date: string | null;
   time: string | null;
   end_date: string | null;
   end_time: string | null;
   timezone: string;
+  duration: number;
   location: string;
   responsible_id: string | null;
+  meeting_id: string | null;
+  origin: string;
   creator_id: string;
+  details: unknown;
+  version: number;
   created_at: string;
   updated_at: string;
   completed_at: string | null;
@@ -89,6 +140,14 @@ export function makeOperationId() {
       ? crypto.randomUUID()
       : Math.random().toString(36).slice(2) + Date.now().toString(36);
   return "op_" + suffix;
+}
+
+export function makeOperationPartId(prefix: string) {
+  const suffix =
+    typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
+      ? crypto.randomUUID()
+      : Math.random().toString(36).slice(2) + Date.now().toString(36);
+  return prefix + "_" + suffix;
 }
 
 export function todayBelem(now = new Date()) {
@@ -138,6 +197,42 @@ function shortTime(value: string | null) {
   return value ? value.slice(0, 5) : null;
 }
 
+function normalizeDetails(value: unknown): OperationDetails {
+  const raw =
+    value && typeof value === "object" && !Array.isArray(value)
+      ? (value as Partial<OperationDetails>)
+      : {};
+
+  return {
+    checklist: Array.isArray(raw.checklist)
+      ? raw.checklist.map((item, index) => ({
+          id: item.id || makeOperationPartId("check"),
+          text: item.text || "",
+          done: !!item.done,
+          responsibleId: item.responsibleId || null,
+          order: typeof item.order === "number" ? item.order : index,
+        }))
+      : [],
+    topics: Array.isArray(raw.topics)
+      ? raw.topics.map((item, index) => ({
+          id: item.id || makeOperationPartId("topic"),
+          title: item.title || "",
+          notes: item.notes || "",
+          decision: item.decision || "",
+          linkedTaskIds: Array.isArray(item.linkedTaskIds)
+            ? item.linkedTaskIds
+            : [],
+          order: typeof item.order === "number" ? item.order : index,
+        }))
+      : [],
+    summary: typeof raw.summary === "string" ? raw.summary : "",
+    decisions: typeof raw.decisions === "string" ? raw.decisions : "",
+    notes: typeof raw.notes === "string" ? raw.notes : "",
+    previousMeetingId:
+      typeof raw.previousMeetingId === "string" ? raw.previousMeetingId : null,
+  };
+}
+
 export function useOperationsStore() {
   const [operations, setOperations] = useState<Operation[]>([]);
   const [organizations, setOrganizations] = useState<OrganizationRef[]>([]);
@@ -179,7 +274,7 @@ export function useOperationsStore() {
         supabase
           .from("operational_items")
           .select(
-            "id,kind,organization_id,workspace_id,title,description,status,priority,date,time,end_date,end_time,timezone,location,responsible_id,creator_id,created_at,updated_at,completed_at",
+            "id,kind,organization_id,workspace_id,title,description,status,priority,visibility,date,time,end_date,end_time,timezone,duration,location,responsible_id,meeting_id,origin,creator_id,details,version,created_at,updated_at,completed_at",
           )
           .order("created_at", { ascending: false }),
         supabase.from("operational_people").select("item_id,person_id"),
@@ -195,7 +290,7 @@ export function useOperationsStore() {
     const peopleByItem = new Map<string, string[]>();
     for (const person of peopleResult.data || []) {
       const current = peopleByItem.get(person.item_id) || [];
-      if (person.person_id === user.id) current.push("me");
+      current.push(person.person_id);
       peopleByItem.set(person.item_id, current);
     }
 
@@ -215,27 +310,40 @@ export function useOperationsStore() {
     );
 
     setOperations(
-      ((operationResult.data || []) as OperationRow[]).map((operation) => ({
-        id: operation.id,
-        kind: operation.kind,
-        organizationId: operation.organization_id,
-        workspaceId: operation.workspace_id,
-        title: operation.title,
-        description: operation.description,
-        status: operation.status,
-        priority: operation.priority,
-        date: operation.date,
-        time: shortTime(operation.time),
-        endDate: operation.end_date,
-        endTime: shortTime(operation.end_time),
-        timezone: operation.timezone,
-        location: operation.location,
-        responsible: operation.responsible_id === user.id ? "me" : null,
-        people: peopleByItem.get(operation.id) || [],
-        createdAt: operation.created_at,
-        updatedAt: operation.updated_at,
-        completedAt: operation.completed_at,
-      })),
+      ((operationResult.data || []) as OperationRow[]).map((operation) => {
+        const participantIds = peopleByItem.get(operation.id) || [];
+        return {
+          id: operation.id,
+          kind: operation.kind,
+          organizationId: operation.organization_id,
+          workspaceId: operation.workspace_id,
+          title: operation.title,
+          description: operation.description,
+          status: operation.status,
+          priority: operation.priority,
+          visibility: operation.visibility || "context",
+          date: operation.date,
+          time: shortTime(operation.time),
+          endDate: operation.end_date,
+          endTime: shortTime(operation.end_time),
+          timezone: operation.timezone,
+          duration: operation.duration || 60,
+          location: operation.location,
+          responsible:
+            operation.responsible_id === user.id ? "me" : null,
+          responsibleId: operation.responsible_id,
+          people: participantIds.includes(user.id) ? ["me"] : [],
+          participantIds,
+          meetingId: operation.meeting_id,
+          origin: operation.origin || "manual",
+          creatorId: operation.creator_id,
+          details: normalizeDetails(operation.details),
+          version: operation.version || 0,
+          createdAt: operation.created_at,
+          updatedAt: operation.updated_at,
+          completedAt: operation.completed_at,
+        } satisfies Operation;
+      }),
     );
 
     setError(null);
@@ -271,6 +379,11 @@ export function useOperationsStore() {
 
       if (!currentUserId) throw new Error("Sua sessão expirou.");
 
+      const creatorId = operation.creatorId || currentUserId;
+      const responsibleId =
+        operation.responsibleId ||
+        (operation.responsible === "me" ? currentUserId : null);
+
       const row = {
         id: operation.id,
         kind: operation.kind,
@@ -280,19 +393,20 @@ export function useOperationsStore() {
         description: operation.description,
         status: operation.status,
         priority: operation.priority,
-        visibility: "context",
+        visibility: operation.visibility || "context",
         date: operation.date,
         time: operation.time,
         end_date: operation.endDate,
         end_time: operation.endTime,
         timezone: operation.timezone || "America/Belem",
-        duration: 60,
+        duration: operation.duration || 60,
         location: operation.location,
-        responsible_id:
-          operation.responsible === "me" ? currentUserId : null,
-        origin: "manual",
-        creator_id: currentUserId,
-        details: {},
+        responsible_id: responsibleId,
+        meeting_id: operation.meetingId,
+        origin: operation.origin || "manual",
+        creator_id: creatorId,
+        details: operation.details || EMPTY_OPERATION_DETAILS,
+        version: (operation.version || 0) + (operations.some((item) => item.id === operation.id) ? 1 : 0),
         updated_at: new Date().toISOString(),
         completed_at: operation.completedAt,
       };
@@ -302,26 +416,45 @@ export function useOperationsStore() {
         .upsert(row, { onConflict: "id" });
       if (itemError) throw itemError;
 
-      const { error: peopleDeleteError } = await supabase
-        .from("operational_people")
-        .delete()
-        .eq("item_id", operation.id);
-      if (peopleDeleteError) throw peopleDeleteError;
-
-      if (operation.people.includes("me")) {
-        const { error: peopleInsertError } = await supabase
+      if (creatorId === currentUserId) {
+        const { error: peopleDeleteError } = await supabase
           .from("operational_people")
-          .insert({
-            item_id: operation.id,
-            person_id: currentUserId,
-            role: "participant",
-          });
-        if (peopleInsertError) throw peopleInsertError;
+          .delete()
+          .eq("item_id", operation.id);
+        if (peopleDeleteError) throw peopleDeleteError;
+
+        const participantIds = [
+          ...new Set(
+            [
+              ...(operation.participantIds || []),
+              ...(operation.people.includes("me") ? [currentUserId] : []),
+            ].filter(Boolean),
+          ),
+        ];
+
+        if (participantIds.length > 0) {
+          const { error: peopleInsertError } = await supabase
+            .from("operational_people")
+            .insert(
+              participantIds.map((personId) => ({
+                item_id: operation.id,
+                person_id: personId,
+                role:
+                  personId === responsibleId ? "responsible" : "participant",
+              })),
+            );
+          if (peopleInsertError) throw peopleInsertError;
+        }
       }
+
+      await logAudit(creatorId, "operation.saved", operation.id, {
+        kind: operation.kind,
+        version: row.version,
+      });
 
       await refresh();
     },
-    [refresh, userId],
+    [operations, refresh, userId],
   );
 
   const updateOperationStatus = useCallback(
@@ -336,11 +469,16 @@ export function useOperationsStore() {
         .update({
           status,
           completed_at: completed,
+          version: operation.version + 1,
           updated_at: now,
         })
         .eq("id", operation.id);
 
       if (updateError) throw updateError;
+
+      await logAudit(operation.creatorId, "operation.status", operation.id, {
+        status,
+      });
       await refresh();
     },
     [refresh],
@@ -352,6 +490,7 @@ export function useOperationsStore() {
     workspaces,
     ready,
     error,
+    userId,
     refresh,
     saveOperation,
     updateOperationStatus,
