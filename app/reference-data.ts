@@ -180,6 +180,7 @@ export type SystemResource = {
 export type AccessGrant = {
   id: string;
   ownerId: string;
+  createdBy: string;
   email: string;
   userId: string | null;
   kind: "organization" | "workspace" | "form" | "table" | "dashboard" | "system";
@@ -531,7 +532,7 @@ export function useReferenceData() {
       supabase
         .from("access_grants")
         .select(
-          "id,owner_id,email,user_id,kind,resource_id,role,columns,row_scope,created_at,accepted_at,expires_at",
+          "id,owner_id,created_by,email,user_id,kind,resource_id,role,columns,row_scope,created_at,accepted_at,expires_at",
         )
         .order("created_at", { ascending: false }),
       supabase
@@ -661,6 +662,7 @@ export function useReferenceData() {
       grants: (grants.data || []).map((item: any) => ({
         id: item.id,
         ownerId: item.owner_id,
+        createdBy: item.created_by,
         email: item.email,
         userId: item.user_id,
         kind: item.kind,
