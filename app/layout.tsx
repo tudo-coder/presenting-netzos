@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { DM_Sans } from "next/font/google";
 import "./globals.css";
 import "./auth-settings.css";
+import "./reference-features.css";
 
 const dmSans = DM_Sans({ subsets: ["latin"] });
 
