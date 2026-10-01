@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { FiArrowRight, FiLock, FiMail, FiX } from "react-icons/fi";
-import { supabase, supabaseConfigured } from "./supabase";
+import { getSupabase } from "./supabase";
 
 export function AuthModal({
   open,
@@ -25,14 +25,11 @@ export function AuthModal({
     setError(null);
     setMessage(null);
 
-    if (!supabaseConfigured) {
-      setError("Supabase ainda não está configurado no ambiente publicado.");
-      return;
-    }
-
     setBusy(true);
 
     try {
+      const supabase = await getSupabase();
+
       if (mode === "signin") {
         const { error: signInError } = await supabase.auth.signInWithPassword({
           email: email.trim(),
