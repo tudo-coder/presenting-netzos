@@ -25,6 +25,7 @@ import {
   FiX,
 } from "react-icons/fi";
 import { getSupabase } from "./supabase";
+import type { RealtimeChannel } from "@supabase/supabase-js";
 import { makeResourceId } from "./netzos-data";
 import {
   EMPTY_OPERATION_DETAILS,
@@ -178,15 +179,71 @@ export function OperationDetail({
   };
 
   useEffect(() => {
-    void fetchRelated().catch((cause) => {
-      setMessage(
-        cause instanceof Error
-          ? cause.message
-          : "Não foi possível carregar o detalhe operacional.",
-      );
+    let active = true;
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    let channel: RealtimeChannel | null = null;
+
+    const refreshRelated = () => {
+      if (!active) return;
+      if (timer) clearTimeout(timer);
+      timer = setTimeout(() => {
+        void fetchRelated().catch((cause) => {
+          if (!active) return;
+          setMessage(
+            cause instanceof Error
+              ? cause.message
+              : "Não foi possível atualizar o detalhe operacional.",
+          );
+        });
+      }, 100);
+    };
+
+    refreshRelated();
+
+    void getSupabase().then((supabase) => {
+      if (!active) return;
+
+      channel = supabase
+        .channel("operation-detail-" + operation.id)
+        .on(
+          "postgres_changes",
+          {
+            event: "*",
+            schema: "public",
+            table: "operational_comments",
+            filter: "item_id=eq." + operation.id,
+          },
+          refreshRelated,
+        )
+        .on(
+          "postgres_changes",
+          {
+            event: "*",
+            schema: "public",
+            table: "operational_files",
+            filter: "item_id=eq." + operation.id,
+          },
+          refreshRelated,
+        )
+        .on(
+          "postgres_changes",
+          {
+            event: "*",
+            schema: "public",
+            table: "operational_transcripts",
+            filter: "item_id=eq." + operation.id,
+          },
+          refreshRelated,
+        )
+        .subscribe();
     });
 
     return () => {
+      active = false;
+      if (timer) clearTimeout(timer);
+      if (channel) {
+        void getSupabase().then((supabase) => supabase.removeChannel(channel!));
+      }
       if (recordingUrl) URL.revokeObjectURL(recordingUrl);
       recorderRef.current?.stop();
       streamRef.current?.getTracks().forEach((track) => track.stop());
