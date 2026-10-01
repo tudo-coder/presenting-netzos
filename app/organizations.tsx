@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { supabase } from "./supabase";
+import { getSupabase } from "./supabase";
 import {
   FiArrowLeft,
   FiBriefcase,
@@ -125,7 +125,8 @@ export function OrganizationsFeature() {
   useEffect(() => {
     let active = true;
 
-    void supabase.auth.getUser().then(({ data }) => {
+    void getSupabase().then(async (supabase) => {
+      const { data } = await supabase.auth.getUser();
       if (!active) return;
 
       const userId = data.user?.id;
