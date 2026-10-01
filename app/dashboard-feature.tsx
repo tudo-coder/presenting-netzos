@@ -1046,7 +1046,7 @@ export function PublishedDashboard({
     events: [],
     connections: [],
     workflows: [],
-    netsRequests: [],
+    netzRequests: [],
     profiles: [],
   };
   const dashboard: Dashboard = {
