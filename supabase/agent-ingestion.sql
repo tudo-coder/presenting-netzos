@@ -105,6 +105,20 @@ create index if not exists external_media_uploads_operation_idx
 create index if not exists external_media_uploads_pending_idx
   on public.external_media_uploads(expires_at)
   where status='pending';
+create index if not exists agent_api_credentials_owner_idx
+  on public.agent_api_credentials(owner_id);
+create index if not exists agent_channel_bindings_org_idx
+  on public.agent_channel_bindings(organization_id);
+create index if not exists agent_channel_bindings_workspace_context_idx
+  on public.agent_channel_bindings(workspace_id, organization_id);
+create index if not exists external_ingestion_events_operation_idx
+  on public.external_ingestion_events(operation_id);
+create index if not exists external_ingestion_events_file_idx
+  on public.external_ingestion_events(file_id);
+create index if not exists external_media_uploads_binding_idx
+  on public.external_media_uploads(binding_id);
+create index if not exists external_operation_refs_binding_idx
+  on public.external_operation_refs(binding_id);
 
 alter table public.agent_channel_bindings enable row level security;
 alter table public.agent_api_credentials enable row level security;
@@ -118,15 +132,23 @@ revoke all on public.external_ingestion_events from anon;
 revoke all on public.external_operation_refs from anon;
 revoke all on public.external_media_uploads from anon;
 
-grant select on public.agent_channel_bindings to authenticated;
-grant select on public.external_ingestion_events to authenticated;
-grant select on public.external_operation_refs to authenticated;
-grant select on public.external_media_uploads to authenticated;
+-- Client-side mutation and discovery are intentionally blocked.
+-- Bindings and ingestion metadata are accessed through the netzos-api Edge Function.
+revoke select on public.agent_channel_bindings from authenticated;
+revoke select on public.external_ingestion_events from authenticated;
+revoke select on public.external_operation_refs from authenticated;
+revoke select on public.external_media_uploads from authenticated;
 
 revoke insert, update, delete on public.agent_channel_bindings from authenticated;
 revoke insert, update, delete on public.external_ingestion_events from authenticated;
 revoke insert, update, delete on public.external_operation_refs from authenticated;
 revoke insert, update, delete on public.external_media_uploads from authenticated;
+
+drop policy if exists agent_api_credentials_deny_client on public.agent_api_credentials;
+create policy agent_api_credentials_deny_client
+on public.agent_api_credentials for select
+to authenticated
+using (false);
 
 drop policy if exists agent_channel_bindings_select_own on public.agent_channel_bindings;
 create policy agent_channel_bindings_select_own
