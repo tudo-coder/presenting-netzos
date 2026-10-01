@@ -10,6 +10,7 @@ import {
   FiSearch,
 } from "react-icons/fi";
 import { OperationDialog } from "./operation-dialog";
+import { OperationDetail } from "./operation-detail";
 import {
   PRIORITY_LABELS,
   TASK_STATUS_LABELS,
@@ -28,7 +29,7 @@ export function MyTasksFeature({
 }: {
   onOpenOrganizations: () => void;
 }) {
-  const { operations, saveOperation: persistOperation, updateOperationStatus, organizations, workspaces, ready, error } = useOperationsStore();
+  const { operations, saveOperation: persistOperation, updateOperationStatus, organizations, workspaces, ready, error, refresh } = useOperationsStore();
   const [tab, setTab] = useState<TaskTab>("all");
   const [layout, setLayout] = useState<LayoutMode>("list");
   const [search, setSearch] = useState("");
@@ -249,17 +250,23 @@ export function MyTasksFeature({
         </div>
       )}
 
-      {(creating || editing) && (
+      {creating && (
         <OperationDialog
           kind="task"
-          operation={editing}
           organizations={organizations}
           workspaces={workspaces}
-          onClose={() => {
-            setCreating(false);
-            setEditing(null);
-          }}
+          onClose={() => setCreating(false)}
           onSave={saveOperation}
+        />
+      )}
+
+      {editing && (
+        <OperationDetail
+          operation={editing}
+          operations={operations}
+          onClose={() => setEditing(null)}
+          onSave={persistOperation}
+          onRefresh={refresh}
         />
       )}
     </section>
