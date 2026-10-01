@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { getSupabase } from "./supabase";
+import { makeResourceId, migrateLegacyNetzOSData } from "./netzos-data";
 import {
   FiArrowLeft,
   FiBriefcase,
@@ -30,15 +31,22 @@ type OrganizationStore = {
   workspaces: Workspace[];
 };
 
-const STORAGE_KEY = "netzos.organizations.v1";
+type OperationSummary = {
+  organizationId: string;
+  kind: "task" | "meeting" | "event";
+  date: string | null;
+  status: string;
+};
+
 const EMPTY_STORE: OrganizationStore = { organizations: [], workspaces: [] };
 
-function makeId(prefix: string) {
-  const suffix =
-    typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
-      ? crypto.randomUUID()
-      : Math.random().toString(36).slice(2) + Date.now().toString(36);
-  return prefix + "_" + suffix;
+function todayBelem() {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Belem",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date());
 }
 
 function OrganizationModal({
@@ -54,9 +62,11 @@ function OrganizationModal({
   description: string;
   submitLabel: string;
   onClose: () => void;
-  onSubmit: (name: string) => void;
+  onSubmit: (name: string) => void | Promise<void>;
 }) {
   const [name, setName] = useState(initialName);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   return (
     <div className="org-modal-backdrop" onMouseDown={onClose}>
@@ -79,11 +89,23 @@ function OrganizationModal({
 
         <form
           className="org-form"
-          onSubmit={(event) => {
+          onSubmit={async (event) => {
             event.preventDefault();
             const value = name.trim();
-            if (!value) return;
-            onSubmit(value);
+            if (!value || saving) return;
+            setSaving(true);
+            setError(null);
+            try {
+              await onSubmit(value);
+            } catch (cause) {
+              setError(
+                cause instanceof Error
+                  ? cause.message
+                  : "Não foi possível salvar no Supabase.",
+              );
+            } finally {
+              setSaving(false);
+            }
           }}
         >
           <label>
@@ -97,12 +119,14 @@ function OrganizationModal({
             />
           </label>
 
+          {error && <p className="auth-feedback error">{error}</p>}
+
           <div className="org-form-actions">
-            <button className="org-button secondary" type="button" onClick={onClose}>
+            <button className="org-button secondary" type="button" onClick={onClose} disabled={saving}>
               Cancelar
             </button>
-            <button className="org-button primary" type="submit" disabled={!name.trim()}>
-              {submitLabel}
+            <button className="org-button primary" type="submit" disabled={saving || !name.trim()}>
+              {saving ? "Salvando…" : submitLabel}
             </button>
           </div>
         </form>
@@ -120,55 +144,87 @@ export function OrganizationsFeature() {
   const [newOrganizationOpen, setNewOrganizationOpen] = useState(false);
   const [editingOrganization, setEditingOrganization] = useState<Organization | null>(null);
   const [newWorkspaceOpen, setNewWorkspaceOpen] = useState(false);
-  const [storageKey, setStorageKey] = useState<string | null>(null);
+  const [operationSummaries, setOperationSummaries] = useState<OperationSummary[]>([]);
+  const [loadError, setLoadError] = useState<string | null>(null);
+
+  const refresh = useCallback(async () => {
+    const supabase = await getSupabase();
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+
+    if (userError) throw userError;
+    if (!user) {
+      setStore(EMPTY_STORE);
+      setOperationSummaries([]);
+      setReady(true);
+      return;
+    }
+
+    await migrateLegacyNetzOSData(supabase, user.id);
+
+    const [organizationResult, workspaceResult, operationResult] = await Promise.all([
+      supabase
+        .from("organizations")
+        .select("id,name,created_at")
+        .order("created_at", { ascending: false }),
+      supabase
+        .from("workspaces")
+        .select("id,organization_id,name,created_at")
+        .order("created_at", { ascending: false }),
+      supabase
+        .from("operational_items")
+        .select("organization_id,kind,date,status"),
+    ]);
+
+    const firstError =
+      organizationResult.error || workspaceResult.error || operationResult.error;
+    if (firstError) throw firstError;
+
+    setStore({
+      organizations: (organizationResult.data || []).map((organization) => ({
+        id: organization.id,
+        name: organization.name,
+        createdAt: organization.created_at,
+      })),
+      workspaces: (workspaceResult.data || []).map((workspace) => ({
+        id: workspace.id,
+        organizationId: workspace.organization_id,
+        name: workspace.name,
+        createdAt: workspace.created_at,
+      })),
+    });
+
+    setOperationSummaries(
+      (operationResult.data || []).map((operation) => ({
+        organizationId: operation.organization_id,
+        kind: operation.kind,
+        date: operation.date,
+        status: operation.status,
+      })),
+    );
+    setLoadError(null);
+    setReady(true);
+  }, []);
 
   useEffect(() => {
     let active = true;
 
-    void getSupabase().then(async (supabase) => {
-      const { data } = await supabase.auth.getUser();
+    void refresh().catch((cause) => {
       if (!active) return;
-
-      const userId = data.user?.id;
-      if (!userId) {
-        setReady(true);
-        return;
-      }
-
-      const userStorageKey = STORAGE_KEY + ":" + userId;
-      setStorageKey(userStorageKey);
-
-      try {
-        const saved =
-          localStorage.getItem(userStorageKey) || localStorage.getItem(STORAGE_KEY);
-
-        if (saved) {
-          const parsed = JSON.parse(saved) as Partial<OrganizationStore>;
-          setStore({
-            organizations: Array.isArray(parsed.organizations) ? parsed.organizations : [],
-            workspaces: Array.isArray(parsed.workspaces) ? parsed.workspaces : [],
-          });
-
-          if (!localStorage.getItem(userStorageKey)) {
-            localStorage.setItem(userStorageKey, saved);
-          }
-        }
-      } catch {
-        setStore(EMPTY_STORE);
-      } finally {
-        setReady(true);
-      }
+      setLoadError(
+        cause instanceof Error
+          ? cause.message
+          : "Não foi possível carregar suas organizações.",
+      );
+      setReady(true);
     });
 
     return () => {
       active = false;
     };
-  }, []);
-
-  useEffect(() => {
-    if (!ready || !storageKey) return;
-    localStorage.setItem(storageKey, JSON.stringify(store));
-  }, [ready, storageKey, store]);
+  }, [refresh]);
 
   const selectedOrganization = useMemo(
     () => store.organizations.find((organization) => organization.id === selectedId) || null,
@@ -188,11 +244,31 @@ export function OrganizationsFeature() {
     [selectedId, store.workspaces]
   );
 
-  const createOrganization = (name: string) => {
+  const createOrganization = async (name: string) => {
+    const supabase = await getSupabase();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) throw new Error("Sua sessão expirou.");
+
+    const id = makeResourceId("org");
+    const { data, error } = await supabase
+      .from("organizations")
+      .insert({
+        id,
+        owner_id: user.id,
+        name,
+        updated_at: new Date().toISOString(),
+      })
+      .select("id,name,created_at")
+      .single();
+
+    if (error) throw error;
+
     const organization: Organization = {
-      id: makeId("org"),
-      name,
-      createdAt: new Date().toISOString(),
+      id: data.id,
+      name: data.name,
+      createdAt: data.created_at,
     };
 
     setStore((current) => ({
@@ -204,25 +280,63 @@ export function OrganizationsFeature() {
     setTab("overview");
   };
 
-  const updateOrganization = (name: string) => {
+  const updateOrganization = async (name: string) => {
     if (!editingOrganization) return;
+
+    const supabase = await getSupabase();
+    const { data, error } = await supabase
+      .from("organizations")
+      .update({
+        name,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", editingOrganization.id)
+      .select("id,name,created_at")
+      .single();
+
+    if (error) throw error;
+
     setStore((current) => ({
       ...current,
       organizations: current.organizations.map((organization) =>
-        organization.id === editingOrganization.id ? { ...organization, name } : organization
+        organization.id === data.id
+          ? { id: data.id, name: data.name, createdAt: data.created_at }
+          : organization
       ),
     }));
     setEditingOrganization(null);
   };
 
-  const createWorkspace = (name: string) => {
+  const createWorkspace = async (name: string) => {
     if (!selectedOrganization) return;
+
+    const supabase = await getSupabase();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) throw new Error("Sua sessão expirou.");
+
+    const { data, error } = await supabase
+      .from("workspaces")
+      .insert({
+        id: makeResourceId("workspace"),
+        owner_id: user.id,
+        organization_id: selectedOrganization.id,
+        name,
+        updated_at: new Date().toISOString(),
+      })
+      .select("id,organization_id,name,created_at")
+      .single();
+
+    if (error) throw error;
+
     const workspace: Workspace = {
-      id: makeId("workspace"),
-      organizationId: selectedOrganization.id,
-      name,
-      createdAt: new Date().toISOString(),
+      id: data.id,
+      organizationId: data.organization_id,
+      name: data.name,
+      createdAt: data.created_at,
     };
+
     setStore((current) => ({
       ...current,
       workspaces: [workspace, ...current.workspaces],
@@ -239,6 +353,35 @@ export function OrganizationsFeature() {
           <div />
           <div />
           <div />
+        </div>
+      </section>
+    );
+  }
+
+  if (loadError) {
+    return (
+      <section className="org-feature">
+        <div className="org-empty compact">
+          <FiBriefcase aria-hidden="true" />
+          <h3>Não foi possível carregar suas organizações</h3>
+          <p>{loadError}</p>
+          <button
+            className="org-button secondary"
+            type="button"
+            onClick={() => {
+              setReady(false);
+              void refresh().catch((cause) => {
+                setLoadError(
+                  cause instanceof Error
+                    ? cause.message
+                    : "Não foi possível carregar suas organizações.",
+                );
+                setReady(true);
+              });
+            }}
+          >
+            Tentar novamente
+          </button>
         </div>
       </section>
     );
@@ -321,11 +464,27 @@ export function OrganizationsFeature() {
                 <span>Workspaces</span>
               </article>
               <article>
-                <strong>—</strong>
+                <strong>
+                  {operationSummaries.filter(
+                    (item) =>
+                      item.organizationId === selectedOrganization.id &&
+                      item.kind === "task" &&
+                      item.date === todayBelem() &&
+                      !["done", "cancelled"].includes(item.status),
+                  ).length}
+                </strong>
                 <span>Tarefas hoje</span>
               </article>
               <article>
-                <strong>—</strong>
+                <strong>
+                  {operationSummaries.filter(
+                    (item) =>
+                      item.organizationId === selectedOrganization.id &&
+                      item.kind === "meeting" &&
+                      item.date === todayBelem() &&
+                      item.status !== "cancelled",
+                  ).length}
+                </strong>
                 <span>Reuniões hoje</span>
               </article>
             </div>
