@@ -19,6 +19,9 @@ export function OperationDialog({
   organizations,
   workspaces,
   initialDate,
+  initialOrganizationId,
+  initialWorkspaceId,
+  lockContextOnCreate = false,
   onClose,
   onSave,
 }: {
@@ -28,15 +31,20 @@ export function OperationDialog({
   organizations: OrganizationRef[];
   workspaces: WorkspaceRef[];
   initialDate?: string;
+  initialOrganizationId?: string;
+  initialWorkspaceId?: string | null;
+  lockContextOnCreate?: boolean;
   onClose: () => void;
   onSave: (operation: Operation) => void | Promise<void>;
 }) {
   const [title, setTitle] = useState(operation?.title || "");
   const [description, setDescription] = useState(operation?.description || "");
   const [organizationId, setOrganizationId] = useState(
-    operation?.organizationId || organizations[0]?.id || ""
+    operation?.organizationId || initialOrganizationId || organizations[0]?.id || ""
   );
-  const [workspaceId, setWorkspaceId] = useState(operation?.workspaceId || "");
+  const [workspaceId, setWorkspaceId] = useState(
+    operation?.workspaceId || initialWorkspaceId || ""
+  );
   const [priority, setPriority] = useState<Priority>(operation?.priority || "normal");
   const [date, setDate] = useState(operation?.date || initialDate || (kind === "task" ? "" : todayBelem()));
   const [time, setTime] = useState(operation?.time || "");
@@ -51,7 +59,7 @@ export function OperationDialog({
     [organizationId, workspaces]
   );
 
-  const contextLocked = Boolean(operation);
+  const contextLocked = Boolean(operation) || lockContextOnCreate;
   const titleLabel =
     kind === "task" ? "Tarefa" : kind === "meeting" ? "Reunião" : "Compromisso";
 
