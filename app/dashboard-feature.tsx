@@ -1041,6 +1041,7 @@ export function PublishedDashboard({
     records: snapshot.records || [],
     dashboards: [],
     systems: [],
+    relations: [],
     grants: [],
     events: [],
     connections: [],
