@@ -155,6 +155,24 @@ export function MockAgentFeature() {
       );
     });
 
+  const toggleBinding = () =>
+    run(async () => {
+      if (!selectedBinding) throw new Error("Selecione um binding.");
+
+      await netzosApi("bindings/" + selectedBinding.id, {
+        method: "PATCH",
+        body: { active: !selectedBinding.active },
+      });
+
+      setCredential("");
+      await loadBindings();
+      setMessage(
+        selectedBinding.active
+          ? "Binding desativado. As credenciais desse grupo deixam de funcionar imediatamente."
+          : "Binding reativado.",
+      );
+    });
+
   const ingest = async (
     type: string,
     payload: Record<string, unknown>,
@@ -415,15 +433,25 @@ export function MockAgentFeature() {
             </select>
           </label>
 
-          <button
-            className="ref-button secondary"
-            type="button"
-            disabled={busy || !bindingId}
-            onClick={() => void generateCredential()}
-          >
-            <FiKey />
-            Gerar API key do agente
-          </button>
+          <div className="mock-agent-actions">
+            <button
+              className="ref-button secondary"
+              type="button"
+              disabled={busy || !bindingId || !selectedBinding?.active}
+              onClick={() => void generateCredential()}
+            >
+              <FiKey />
+              Gerar API key do agente
+            </button>
+            <button
+              className="ref-button secondary"
+              type="button"
+              disabled={busy || !bindingId}
+              onClick={() => void toggleBinding()}
+            >
+              {selectedBinding?.active ? "Desativar binding" : "Reativar binding"}
+            </button>
+          </div>
 
           {credential && (
             <div className="mock-agent-secret">
