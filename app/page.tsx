@@ -15,7 +15,7 @@ import {
   FiMenu,
   FiSettings,
   FiShare2,
-  FiSparkles,
+  FiStar,
   FiUserCheck,
   FiZap,
 } from "react-icons/fi";
@@ -203,7 +203,7 @@ const primaryNavigation: Array<{ label: string; Icon: IconType }> = [
   { label: "Automações", Icon: FiZap },
   { label: "Compartilhados comigo", Icon: FiShare2 },
   { label: "Pessoas e Acessos", Icon: FiUserCheck },
-  { label: "Nets", Icon: FiSparkles },
+  { label: "Nets", Icon: FiStar },
 ];
 
 const secondaryNavigation: Array<{ label: string; Icon: IconType }> = [

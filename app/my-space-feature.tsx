@@ -9,7 +9,7 @@ import {
   FiClock,
   FiGrid,
   FiLayout,
-  FiSparkles,
+  FiStar,
   FiUsers,
 } from "react-icons/fi";
 import {
@@ -108,7 +108,7 @@ export function MySpaceFeature({
         </div>
 
         <button className="nets-home-prompt" type="button" onClick={onOpenNets}>
-          <FiSparkles />
+          <FiStar />
           <span>
             <strong>Pedir para a Nets</strong>
             <small>Consultar, preparar ou revisar uma ação operacional</small>

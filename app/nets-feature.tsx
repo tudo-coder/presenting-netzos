@@ -12,7 +12,7 @@ import {
   FiRefreshCw,
   FiSearch,
   FiSend,
-  FiSparkles,
+  FiStar,
   FiZap,
 } from "react-icons/fi";
 import { getSupabase } from "./supabase";
@@ -606,7 +606,7 @@ export function NetsFeature({
   if (error) {
     return (
       <section className="ref-feature">
-        <div className="ref-empty"><FiSparkles /><h2>Não foi possível carregar a Nets</h2><p>{error}</p></div>
+        <div className="ref-empty"><FiStar /><h2>Não foi possível carregar a Nets</h2><p>{error}</p></div>
       </section>
     );
   }
@@ -660,7 +660,7 @@ export function NetsFeature({
       </div>
 
       <form className="nets-prompt" onSubmit={(event) => void startRequest(event)}>
-        <FiSparkles />
+        <FiStar />
         <textarea
           value={prompt}
           rows={3}
