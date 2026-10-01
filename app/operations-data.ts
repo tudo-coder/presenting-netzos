@@ -368,6 +368,53 @@ export function useOperationsStore() {
     };
   }, [refresh]);
 
+  useEffect(() => {
+    let active = true;
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    let channel: Awaited<ReturnType<typeof getSupabase>>["realtime"]["channels"][number] | null = null;
+
+    const scheduleRefresh = () => {
+      if (!active) return;
+      if (timer) clearTimeout(timer);
+      timer = setTimeout(() => {
+        void refresh().catch((cause) => {
+          if (!active) return;
+          setError(
+            cause instanceof Error
+              ? cause.message
+              : "Não foi possível atualizar os dados operacionais.",
+          );
+        });
+      }, 120);
+    };
+
+    void getSupabase().then((supabase) => {
+      if (!active) return;
+
+      channel = supabase
+        .channel("netzos-operational-live")
+        .on(
+          "postgres_changes",
+          { event: "*", schema: "public", table: "operational_items" },
+          scheduleRefresh,
+        )
+        .on(
+          "postgres_changes",
+          { event: "*", schema: "public", table: "operational_people" },
+          scheduleRefresh,
+        )
+        .subscribe();
+    });
+
+    return () => {
+      active = false;
+      if (timer) clearTimeout(timer);
+      if (channel) {
+        void getSupabase().then((supabase) => supabase.removeChannel(channel!));
+      }
+    };
+  }, [refresh]);
+
   const saveOperation = useCallback(
     async (operation: Operation) => {
       const supabase = await getSupabase();
