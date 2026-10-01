@@ -10,7 +10,7 @@ import {
   FiUser,
   FiZap,
 } from "react-icons/fi";
-import { supabase, supabaseConfigured } from "./supabase";
+import { getSupabase } from "./supabase";
 
 type ChatGPTConnection = {
   id: string;
@@ -34,12 +34,8 @@ export function SettingsFeature({ user }: { user: User }) {
   const [error, setError] = useState<string | null>(null);
 
   const refreshConnection = useCallback(async () => {
-    if (!supabaseConfigured) {
-      setLoading(false);
-      return;
-    }
-
     setLoading(true);
+    const supabase = await getSupabase();
     const { data, error: queryError } = await supabase
       .from("chatgpt_connections")
       .select(
@@ -96,11 +92,7 @@ export function SettingsFeature({ user }: { user: User }) {
     setError(null);
     setNotice(null);
 
-    if (!supabaseConfigured) {
-      setError("Supabase ainda não está configurado no ambiente publicado.");
-      setConnecting(false);
-      return;
-    }
+    const supabase = await getSupabase();
 
     const returnTo = new URL(window.location.href);
     returnTo.search = "";
@@ -128,6 +120,7 @@ export function SettingsFeature({ user }: { user: User }) {
     setTesting(true);
     setError(null);
 
+    const supabase = await getSupabase();
     const { data, error: invokeError } = await supabase.functions.invoke(
       "chatgpt-proxy",
       {
