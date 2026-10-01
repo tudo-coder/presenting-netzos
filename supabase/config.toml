@@ -1,0 +1,6 @@
+# Edge Function settings tracked with the application.
+# netzos-api validates Supabase user JWTs and NetzOS integration keys in code,
+# so the legacy platform JWT gate must remain disabled for this function.
+
+[functions.netzos-api]
+verify_jwt = false
