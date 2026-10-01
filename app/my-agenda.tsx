@@ -44,7 +44,7 @@ export function MyAgendaFeature({
 }: {
   onOpenOrganizations: () => void;
 }) {
-  const { operations, setOperations, organizations, workspaces, ready } = useOperationsStore();
+  const { operations, saveOperation: persistOperation, organizations, workspaces, ready, error } = useOperationsStore();
   const [view, setView] = useState<ViewMode>("month");
   const [cursor, setCursor] = useState(todayBelem());
   const [creatingKind, setCreatingKind] = useState<OperationKind | null>(null);
@@ -91,13 +91,8 @@ export function MyAgendaFeature({
     [allPersonalItems]
   );
 
-  const saveOperation = (operation: Operation) => {
-    setOperations((current) => {
-      const exists = current.some((item) => item.id === operation.id);
-      return exists
-        ? current.map((item) => (item.id === operation.id ? operation : item))
-        : [operation, ...current];
-    });
+  const saveOperation = async (operation: Operation) => {
+    await persistOperation(operation);
     setCreatingKind(null);
     setEditing(null);
   };
@@ -180,6 +175,8 @@ export function MyAgendaFeature({
   };
 
   if (!ready) return <div className="ops-feature ops-loading"><div /></div>;
+
+  if (error) return <div className="ops-feature agenda-premium"><div className="ops-empty compact"><h2>Não foi possível carregar sua agenda</h2><p>{error}</p></div></div>;
 
   if (organizations.length === 0) {
     return (
