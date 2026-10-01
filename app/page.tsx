@@ -23,7 +23,7 @@ import { MyTasksFeature } from "./my-tasks";
 import { MyAgendaFeature } from "./my-agenda";
 import { AuthModal } from "./auth-modal";
 import { SettingsFeature } from "./settings";
-import { supabase, supabaseConfigured } from "./supabase";
+import { getSupabase } from "./supabase";
 import type { Session } from "@supabase/supabase-js";
 
 const agentActivity = [
@@ -204,30 +204,34 @@ export default function Home() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
-    if (!supabaseConfigured) {
-      setAuthReady(true);
-      return;
-    }
-
     let mounted = true;
+    let unsubscribe: (() => void) | null = null;
 
-    void supabase.auth.getSession().then(({ data }) => {
-      if (!mounted) return;
-      setSession(data.session);
-      setAuthReady(true);
-    });
+    void getSupabase()
+      .then(async (supabase) => {
+        const { data } = await supabase.auth.getSession();
+        if (!mounted) return;
 
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, nextSession) => {
-      setSession(nextSession);
-      setAuthReady(true);
-      if (nextSession) setAuthOpen(false);
-    });
+        setSession(data.session);
+        setAuthReady(true);
+
+        const {
+          data: { subscription },
+        } = supabase.auth.onAuthStateChange((_event, nextSession) => {
+          setSession(nextSession);
+          setAuthReady(true);
+          if (nextSession) setAuthOpen(false);
+        });
+
+        unsubscribe = () => subscription.unsubscribe();
+      })
+      .catch(() => {
+        if (mounted) setAuthReady(true);
+      });
 
     return () => {
       mounted = false;
-      subscription.unsubscribe();
+      unsubscribe?.();
     };
   }, []);
 
@@ -276,6 +280,7 @@ export default function Home() {
             className="dashboard-logout"
             type="button"
             onClick={async () => {
+              const supabase = await getSupabase();
               await supabase.auth.signOut();
               setActiveNav("Home");
               setSidebarOpen(false);
