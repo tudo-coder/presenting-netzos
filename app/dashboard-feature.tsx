@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
 import {
   FiBarChart2,
   FiCopy,
@@ -995,7 +995,9 @@ export function PublishedDashboard({
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
 
-  useState(() => {
+  useEffect(() => {
+    let active = true;
+
     void getSupabase()
       .then((supabase) =>
         supabase
@@ -1006,11 +1008,18 @@ export function PublishedDashboard({
           .maybeSingle(),
       )
       .then(({ data, error: queryError }) => {
+        if (!active) return;
         if (queryError) setError(queryError.message);
         else setSnapshot(data?.snapshot || null);
       })
-      .finally(() => setLoading(false));
-  });
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [publicationId]);
 
   if (loading) return <div className="published-dashboard"><p>Carregando…</p></div>;
   if (error || !snapshot) {
