@@ -26,7 +26,7 @@ export function MySpaceFeature({
   onOpenData,
   onOpenSystems,
   onOpenShared,
-  onOpenNets,
+  onOpenNetz,
 }: {
   onOpenTasks: () => void;
   onOpenAgenda: () => void;
@@ -34,7 +34,7 @@ export function MySpaceFeature({
   onOpenData: () => void;
   onOpenSystems: () => void;
   onOpenShared: () => void;
-  onOpenNets: () => void;
+  onOpenNetz: () => void;
 }) {
   const operations = useOperationsStore();
   const reference = useReferenceData();
@@ -107,10 +107,10 @@ export function MySpaceFeature({
           </p>
         </div>
 
-        <button className="nets-home-prompt" type="button" onClick={onOpenNets}>
+        <button className="netz-home-prompt" type="button" onClick={onOpenNetz}>
           <FiStar />
           <span>
-            <strong>Pedir para a Nets</strong>
+            <strong>Pedir para a Netz</strong>
             <small>Consultar, preparar ou revisar uma ação operacional</small>
           </span>
           <FiArrowRight />

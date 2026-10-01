@@ -34,7 +34,7 @@ import {
 import { ConnectionsFeature } from "./connections-feature";
 import { AutomationsFeature } from "./automations-feature";
 import { AccessFeature, SharedFeature } from "./access-feature";
-import { NetsFeature } from "./nets-feature";
+import { NetzFeature } from "./nets-feature";
 import { AuthModal } from "./auth-modal";
 import { SettingsFeature } from "./settings";
 import { getSupabase } from "./supabase";
@@ -203,7 +203,7 @@ const primaryNavigation: Array<{ label: string; Icon: IconType }> = [
   { label: "Automações", Icon: FiZap },
   { label: "Compartilhados comigo", Icon: FiShare2 },
   { label: "Pessoas e Acessos", Icon: FiUserCheck },
-  { label: "Nets", Icon: FiStar },
+  { label: "Netz", Icon: FiStar },
 ];
 
 const secondaryNavigation: Array<{ label: string; Icon: IconType }> = [
@@ -412,7 +412,7 @@ export default function Home() {
                 }}
                 onOpenSystems={() => setActiveNav("Sistemas")}
                 onOpenShared={() => setActiveNav("Compartilhados comigo")}
-                onOpenNets={() => setActiveNav("Nets")}
+                onOpenNetz={() => setActiveNav("Netz")}
               />
             )}
 
@@ -479,8 +479,8 @@ export default function Home() {
 
             {activeNav === "Pessoas e Acessos" && <AccessFeature />}
 
-            {activeNav === "Nets" && (
-              <NetsFeature
+            {activeNav === "Netz" && (
+              <NetzFeature
                 onOpenAgenda={() => setActiveNav("Minha Agenda")}
                 onOpenTasks={() => setActiveNav("Minhas tarefas")}
                 onOpenAutomations={() => setActiveNav("Automações")}
@@ -506,7 +506,7 @@ export default function Home() {
                 </header>
                 <div className="ref-empty compact">
                   <FiHelpCircle />
-                  <h3>Use a Nets para ações operacionais guiadas</h3>
+                  <h3>Use a Netz para ações operacionais guiadas</h3>
                   <p>
                     Para integrações externas, prepare primeiro uma Conexão e
                     revise as automações antes de ativá-las.

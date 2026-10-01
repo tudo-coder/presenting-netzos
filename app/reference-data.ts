@@ -259,7 +259,7 @@ export type AutomationWorkflow = {
   updatedAt: string;
 };
 
-export type NetsRequest = {
+export type NetzRequest = {
   id: string;
   actorId: string;
   organizationId: string | null;
@@ -302,7 +302,7 @@ export type ReferenceData = {
   events: AuditEvent[];
   connections: IntegrationConnection[];
   workflows: AutomationWorkflow[];
-  netsRequests: NetsRequest[];
+  netzRequests: NetzRequest[];
   profiles: Profile[];
 };
 
@@ -318,7 +318,7 @@ const EMPTY_DATA: ReferenceData = {
   events: [],
   connections: [],
   workflows: [],
-  netsRequests: [],
+  netzRequests: [],
   profiles: [],
 };
 
@@ -491,7 +491,7 @@ export function useReferenceData() {
       events,
       connections,
       workflows,
-      netsRequests,
+      netzRequests,
       profiles,
     ] = await Promise.all([
       supabase
@@ -574,7 +574,7 @@ export function useReferenceData() {
       events,
       connections,
       workflows,
-      netsRequests,
+      netzRequests,
       profiles,
     ].find((result) => result.error)?.error;
 
@@ -707,7 +707,7 @@ export function useReferenceData() {
         createdAt: item.created_at,
         updatedAt: item.updated_at,
       })) as AutomationWorkflow[],
-      netsRequests: (netsRequests.data || []).map((item: any) => ({
+      netzRequests: (netzRequests.data || []).map((item: any) => ({
         id: item.id,
         actorId: item.actor_id,
         organizationId: item.organization_id,
@@ -722,7 +722,7 @@ export function useReferenceData() {
         version: item.version || 0,
         createdAt: item.created_at,
         updatedAt: item.updated_at,
-      })) as NetsRequest[],
+      })) as NetzRequest[],
       profiles: (profiles.data || []).map((item: any) => ({
         id: item.id,
         email: item.email,

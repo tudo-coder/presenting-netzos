@@ -21,7 +21,7 @@ import { makeResourceId } from "./netzos-data";
 import {
   logAudit,
   type AutomationWorkflow,
-  type NetsRequest,
+  type NetzRequest,
   useReferenceData,
 } from "./reference-data";
 
@@ -68,7 +68,7 @@ function classify(prompt: string): Tool {
   return "clarify";
 }
 
-function statusLabel(status: NetsRequest["status"]) {
+function statusLabel(status: NetzRequest["status"]) {
   if (status === "done") return "Concluído";
   if (status === "needs_review") return "Aguardando revisão";
   if (status === "questions") return "Precisa de contexto";
@@ -78,7 +78,7 @@ function statusLabel(status: NetsRequest["status"]) {
   return status;
 }
 
-export function NetsFeature({
+export function NetzFeature({
   onOpenAgenda,
   onOpenTasks,
   onOpenAutomations,
@@ -102,7 +102,7 @@ export function NetsFeature({
   const [active, setActive] = useState<{
     id: string;
     tool: Tool;
-    status: NetsRequest["status"];
+    status: NetzRequest["status"];
     prompt: string;
   } | null>(null);
   const [organizationId, setOrganizationId] = useState("");
@@ -131,7 +131,7 @@ export function NetsFeature({
       (operation.responsible === "me" || operation.people.includes("me")),
   );
 
-  const requestCountLastHour = data.netsRequests.filter(
+  const requestCountLastHour = data.netzRequests.filter(
     (request) =>
       request.actorId === userId &&
       Date.parse(request.createdAt) > Date.now() - 60 * 60 * 1000,
@@ -150,11 +150,11 @@ export function NetsFeature({
     id: string;
     originalPrompt: string;
     tool: Tool;
-    status: NetsRequest["status"];
+    status: NetzRequest["status"];
     plan?: any;
     resultValue?: any;
     errorValue?: string | null;
-    history?: NetsRequest["history"];
+    history?: NetzRequest["history"];
   }) => {
     const supabase = await getSupabase();
     const { error: saveError } = await supabase
@@ -293,14 +293,14 @@ export function NetsFeature({
     }
 
     const tool = shortcut || classify(originalPrompt);
-    const id = makeResourceId("nets");
+    const id = makeResourceId("netz");
 
     setBusy(true);
     try {
       if (tool === "overdue_tasks" || tool === "agenda") {
         await runReadTool(id, tool, originalPrompt);
       } else {
-        const status: NetsRequest["status"] =
+        const status: NetzRequest["status"] =
           tool === "clarify" || tool === "search_table"
             ? "questions"
             : "needs_review";
@@ -361,7 +361,7 @@ export function NetsFeature({
         duration: 60,
         location: "",
         responsible_id: userId,
-        origin: "nets",
+        origin: "netz",
         creator_id: userId,
         details: {},
         version: 0,
@@ -392,7 +392,7 @@ export function NetsFeature({
         ],
       });
 
-      await logAudit(userId, "nets.task.created", operationId, {
+      await logAudit(userId, "netz.task.created", operationId, {
         request: active.id,
       });
       await Promise.all([refresh(), refreshOperations()]);
@@ -458,7 +458,7 @@ export function NetsFeature({
       });
       await logAudit(
         userId,
-        mode === "status" ? "nets.task.status" : "nets.task.rescheduled",
+        mode === "status" ? "netz.task.status" : "netz.task.rescheduled",
         task.id,
         { request: active.id },
       );
@@ -553,7 +553,7 @@ export function NetsFeature({
           recipient: "me",
           message: "Revisar alteração em " + table.name,
         },
-        description: "Rascunho preparado pela Nets",
+        description: "Rascunho preparado pela Netz",
       };
 
       const { error: workflowError } = await supabase
@@ -562,7 +562,7 @@ export function NetsFeature({
           id: workflowId,
           actor_id: userId,
           name: automationName.trim() || "Automação · " + table.name,
-          description: "Rascunho preparado pela Nets",
+          description: "Rascunho preparado pela Netz",
           definition,
           status: "draft",
           version: 0,
@@ -606,17 +606,17 @@ export function NetsFeature({
   if (error) {
     return (
       <section className="ref-feature">
-        <div className="ref-empty"><FiStar /><h2>Não foi possível carregar a Nets</h2><p>{error}</p></div>
+        <div className="ref-empty"><FiStar /><h2>Não foi possível carregar a Netz</h2><p>{error}</p></div>
       </section>
     );
   }
 
   return (
-    <section className="ref-feature nets-feature">
+    <section className="ref-feature netz-feature">
       <header className="ref-heading">
         <div>
           <span className="ref-eyebrow">Operational assistant</span>
-          <h1>Nets</h1>
+          <h1>Netz</h1>
           <p>
             Consulte atividades e prepare mudanças usando somente ferramentas
             permitidas. Ações de escrita exigem revisão antes de executar.
@@ -624,7 +624,7 @@ export function NetsFeature({
         </div>
       </header>
 
-      <div className="nets-shortcuts">
+      <div className="netz-shortcuts">
         <button
           type="button"
           onClick={() => void startRequest(undefined, "overdue_tasks")}
@@ -659,7 +659,7 @@ export function NetsFeature({
         </button>
       </div>
 
-      <form className="nets-prompt" onSubmit={(event) => void startRequest(event)}>
+      <form className="netz-prompt" onSubmit={(event) => void startRequest(event)}>
         <FiStar />
         <textarea
           value={prompt}
@@ -674,14 +674,14 @@ export function NetsFeature({
         </button>
       </form>
 
-      <small className="nets-limit">
+      <small className="netz-limit">
         {requestCountLastHour}/30 novos pedidos na última hora
       </small>
 
       {message && <p className="ref-note">{message}</p>}
 
       {active && (
-        <section className="nets-workbench">
+        <section className="netz-workbench">
           <header>
             <div>
               <span className="ref-eyebrow">{TOOL_LABELS[active.tool]}</span>
@@ -758,7 +758,7 @@ export function NetsFeature({
                 </label>
               </div>
 
-              <div className="nets-review">
+              <div className="netz-review">
                 <span>Revisão</span>
                 <strong>{title || "Título da tarefa"}</strong>
                 <small>
@@ -942,7 +942,7 @@ export function NetsFeature({
           )}
 
           {result && (
-            <div className="nets-result">
+            <div className="netz-result">
               <div className="ref-section-heading compact">
                 <div>
                   <span className="ref-eyebrow">Resultado</span>
@@ -1005,11 +1005,11 @@ export function NetsFeature({
 
       <div className="ref-section-heading">
         <div><span className="ref-eyebrow">Histórico</span><h3>Últimos pedidos</h3></div>
-        <span className="ref-count">{data.netsRequests.length}</span>
+        <span className="ref-count">{data.netzRequests.length}</span>
       </div>
 
-      <div className="nets-history">
-        {data.netsRequests.slice(0, 50).map((request) => (
+      <div className="netz-history">
+        {data.netzRequests.slice(0, 50).map((request) => (
           <button
             type="button"
             key={request.id}
