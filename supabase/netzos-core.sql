@@ -148,3 +148,171 @@ create index if not exists operational_transcripts_author_id_idx
 
 -- Policies are intentionally ownership-first for the current NetzOS account model.
 -- Team sharing can extend these policies later without changing the core data model.
+
+
+-- Ownership policies used by the current Supabase Auth model.
+drop policy if exists organizations_select_own on public.organizations;
+create policy organizations_select_own on public.organizations
+for select to authenticated
+using ((select auth.uid()) = owner_id);
+
+drop policy if exists organizations_insert_own on public.organizations;
+create policy organizations_insert_own on public.organizations
+for insert to authenticated
+with check ((select auth.uid()) = owner_id);
+
+drop policy if exists organizations_update_own on public.organizations;
+create policy organizations_update_own on public.organizations
+for update to authenticated
+using ((select auth.uid()) = owner_id)
+with check ((select auth.uid()) = owner_id);
+
+drop policy if exists organizations_delete_own on public.organizations;
+create policy organizations_delete_own on public.organizations
+for delete to authenticated
+using ((select auth.uid()) = owner_id);
+
+drop policy if exists workspaces_select_own on public.workspaces;
+create policy workspaces_select_own on public.workspaces
+for select to authenticated
+using ((select auth.uid()) = owner_id);
+
+drop policy if exists workspaces_insert_own on public.workspaces;
+create policy workspaces_insert_own on public.workspaces
+for insert to authenticated
+with check (
+  (select auth.uid()) = owner_id
+  and exists (
+    select 1 from public.organizations o
+    where o.id = organization_id
+      and o.owner_id = (select auth.uid())
+  )
+);
+
+drop policy if exists workspaces_update_own on public.workspaces;
+create policy workspaces_update_own on public.workspaces
+for update to authenticated
+using ((select auth.uid()) = owner_id)
+with check (
+  (select auth.uid()) = owner_id
+  and exists (
+    select 1 from public.organizations o
+    where o.id = organization_id
+      and o.owner_id = (select auth.uid())
+  )
+);
+
+drop policy if exists workspaces_delete_own on public.workspaces;
+create policy workspaces_delete_own on public.workspaces
+for delete to authenticated
+using ((select auth.uid()) = owner_id);
+
+drop policy if exists operational_items_select_own on public.operational_items;
+create policy operational_items_select_own on public.operational_items
+for select to authenticated
+using (
+  (select auth.uid()) = creator_id
+  or (select auth.uid()) = responsible_id
+);
+
+drop policy if exists operational_items_insert_own on public.operational_items;
+create policy operational_items_insert_own on public.operational_items
+for insert to authenticated
+with check (
+  (select auth.uid()) = creator_id
+  and exists (
+    select 1 from public.organizations o
+    where o.id = organization_id
+      and o.owner_id = (select auth.uid())
+  )
+  and (
+    workspace_id is null
+    or exists (
+      select 1 from public.workspaces w
+      where w.id = workspace_id
+        and w.organization_id = organization_id
+        and w.owner_id = (select auth.uid())
+    )
+  )
+);
+
+drop policy if exists operational_items_update_own on public.operational_items;
+create policy operational_items_update_own on public.operational_items
+for update to authenticated
+using ((select auth.uid()) = creator_id)
+with check (
+  (select auth.uid()) = creator_id
+  and exists (
+    select 1 from public.organizations o
+    where o.id = organization_id
+      and o.owner_id = (select auth.uid())
+  )
+  and (
+    workspace_id is null
+    or exists (
+      select 1 from public.workspaces w
+      where w.id = workspace_id
+        and w.organization_id = organization_id
+        and w.owner_id = (select auth.uid())
+    )
+  )
+);
+
+drop policy if exists operational_items_delete_own on public.operational_items;
+create policy operational_items_delete_own on public.operational_items
+for delete to authenticated
+using ((select auth.uid()) = creator_id);
+
+drop policy if exists operational_people_select_visible on public.operational_people;
+create policy operational_people_select_visible on public.operational_people
+for select to authenticated
+using (
+  person_id = (select auth.uid())
+  or exists (
+    select 1 from public.operational_items i
+    where i.id = item_id
+      and i.creator_id = (select auth.uid())
+  )
+);
+
+drop policy if exists operational_people_insert_owned_item on public.operational_people;
+create policy operational_people_insert_owned_item on public.operational_people
+for insert to authenticated
+with check (
+  person_id = (select auth.uid())
+  and exists (
+    select 1 from public.operational_items i
+    where i.id = item_id
+      and i.creator_id = (select auth.uid())
+  )
+);
+
+drop policy if exists operational_people_update_owned_item on public.operational_people;
+create policy operational_people_update_owned_item on public.operational_people
+for update to authenticated
+using (
+  exists (
+    select 1 from public.operational_items i
+    where i.id = item_id
+      and i.creator_id = (select auth.uid())
+  )
+)
+with check (
+  person_id = (select auth.uid())
+  and exists (
+    select 1 from public.operational_items i
+    where i.id = item_id
+      and i.creator_id = (select auth.uid())
+  )
+);
+
+drop policy if exists operational_people_delete_owned_item on public.operational_people;
+create policy operational_people_delete_owned_item on public.operational_people
+for delete to authenticated
+using (
+  exists (
+    select 1 from public.operational_items i
+    where i.id = item_id
+      and i.creator_id = (select auth.uid())
+  )
+);
