@@ -28,7 +28,7 @@ export function MyTasksFeature({
 }: {
   onOpenOrganizations: () => void;
 }) {
-  const { operations, setOperations, organizations, workspaces, ready } = useOperationsStore();
+  const { operations, saveOperation: persistOperation, updateOperationStatus, organizations, workspaces, ready, error } = useOperationsStore();
   const [tab, setTab] = useState<TaskTab>("all");
   const [layout, setLayout] = useState<LayoutMode>("list");
   const [search, setSearch] = useState("");
@@ -67,31 +67,14 @@ export function MyTasksFeature({
       });
   }, [dueFilter, operations, priorityFilter, search, tab, workspaceFilter]);
 
-  const saveOperation = (operation: Operation) => {
-    setOperations((current) => {
-      const exists = current.some((item) => item.id === operation.id);
-      return exists
-        ? current.map((item) => (item.id === operation.id ? operation : item))
-        : [operation, ...current];
-    });
+  const saveOperation = async (operation: Operation) => {
+    await persistOperation(operation);
     setCreating(false);
     setEditing(null);
   };
 
-  const updateStatus = (task: Operation, status: TaskStatus) => {
-    const now = new Date().toISOString();
-    setOperations((current) =>
-      current.map((item) =>
-        item.id === task.id
-          ? {
-              ...item,
-              status,
-              updatedAt: now,
-              completedAt: status === "done" ? now : null,
-            }
-          : item
-      )
-    );
+  const updateStatus = async (task: Operation, status: TaskStatus) => {
+    await updateOperationStatus(task, status);
   };
 
   const contextLabel = (task: Operation) => {
@@ -101,6 +84,8 @@ export function MyTasksFeature({
   };
 
   if (!ready) return <div className="ops-feature ops-loading"><div /></div>;
+
+  if (error) return <div className="ops-feature"><div className="ops-empty compact"><h2>Não foi possível carregar suas tarefas</h2><p>{error}</p></div></div>;
 
   if (organizations.length === 0) {
     return (
