@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   FiActivity,
   FiChevronLeft,
@@ -21,6 +21,10 @@ import { SiTelegram, SiWhatsapp } from "react-icons/si";
 import { OrganizationsFeature } from "./organizations";
 import { MyTasksFeature } from "./my-tasks";
 import { MyAgendaFeature } from "./my-agenda";
+import { AuthModal } from "./auth-modal";
+import { SettingsFeature } from "./settings";
+import { supabase, supabaseConfigured } from "./supabase";
+import type { Session } from "@supabase/supabase-js";
 
 const agentActivity = [
   {
@@ -192,12 +196,50 @@ const secondaryNavigation = [
 ];
 
 export default function Home() {
-  const [loggedIn, setLoggedIn] = useState(false);
+  const [session, setSession] = useState<Session | null>(null);
+  const [authReady, setAuthReady] = useState(false);
+  const [authOpen, setAuthOpen] = useState(false);
   const [activeNav, setActiveNav] = useState("Home");
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  if (loggedIn) {
+  useEffect(() => {
+    if (!supabaseConfigured) {
+      setAuthReady(true);
+      return;
+    }
+
+    let mounted = true;
+
+    void supabase.auth.getSession().then(({ data }) => {
+      if (!mounted) return;
+      setSession(data.session);
+      setAuthReady(true);
+    });
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, nextSession) => {
+      setSession(nextSession);
+      setAuthReady(true);
+      if (nextSession) setAuthOpen(false);
+    });
+
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!session) return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("settings") === "chatgpt") {
+      setActiveNav("Settings");
+    }
+  }, [session]);
+
+  if (session) {
     const renderNavItem = ({
       label,
       Icon,
@@ -233,7 +275,11 @@ export default function Home() {
           <button
             className="dashboard-logout"
             type="button"
-            onClick={() => setLoggedIn(false)}
+            onClick={async () => {
+              await supabase.auth.signOut();
+              setActiveNav("Home");
+              setSidebarOpen(false);
+            }}
           >
             Logout
           </button>
@@ -315,6 +361,7 @@ export default function Home() {
               <MyAgendaFeature onOpenOrganizations={() => setActiveNav("Organizações")} />
             )}
             {activeNav === "Organizações" && <OrganizationsFeature />}
+            {activeNav === "Settings" && <SettingsFeature user={session.user} />}
           </div>
         </div>
       </main>
@@ -338,11 +385,13 @@ export default function Home() {
         <button
           className="login"
           type="button"
-          onClick={() => setLoggedIn(true)}
+          disabled={!authReady}
+          onClick={() => setAuthOpen(true)}
         >
           Login
         </button>
       </section>
+      <AuthModal open={authOpen} onClose={() => setAuthOpen(false)} />
     </main>
   );
 }
