@@ -194,10 +194,11 @@ function downloadAgendaIcs(
         item.time
           ? "DTEND:" + end
           : "DTEND;VALUE=DATE:" +
-            new Date(item.date! + "T12:00:00Z")
-              .toISOString()
-              .slice(0, 10)
-              .replace(/-/g, ""),
+            (() => {
+              const value = new Date(item.date! + "T12:00:00Z");
+              value.setUTCDate(value.getUTCDate() + 1);
+              return value.toISOString().slice(0, 10).replace(/-/g, "");
+            })(),
         "SUMMARY:" + escapeIcs(item.title),
         "DESCRIPTION:" + escapeIcs(description),
         item.location ? "LOCATION:" + escapeIcs(item.location) : "",
